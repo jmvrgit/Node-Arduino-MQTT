@@ -126,7 +126,7 @@ void loadValues(){
 }
 
 String prepareJSONpayload(float voltage, float ampere1, float ampere2, float ampere3, float phaseAngle1, float phaseAngle2, float phaseAngle3, float power1, float power2, float power3, bool relayStatusON, String status) {
-    StaticJsonDocument<512> doc;
+    StaticJsonDocument<256> doc;
     doc["nodeName"] = nodeName;
     doc["voltage"] = round(voltage * 100.0) / 100.0;
     doc["ampere1"] = round(ampere1 * 100.0) / 100.0;
