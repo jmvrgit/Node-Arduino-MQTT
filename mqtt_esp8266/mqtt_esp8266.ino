@@ -15,6 +15,21 @@ unsigned long lastMsg = 0;
 char msg[MSG_BUFFER_SIZE];
 int value = 0;
 
+// power data global variables
+String nodeName = "Node0000";
+double voltage;
+double ampere1;
+double ampere2;
+double ampere3;
+double phaseAngle1;
+double phaseAngle2;
+double phaseAngle3;
+double power1;
+double power2;
+double power3;
+bool relayStatusON = true;
+String status = "normal";
+String controlsubs = "/relaycontrols/" + nodeName;
 void setup_wifi() {
 
   delay(10);
@@ -72,7 +87,7 @@ void reconnect() {
       // Once connected, publish an announcement...
       // client.publish("powerdata", "hello world");
       // ... and resubscribe
-      // client.subscribe("inTopic");
+      client.subscribe(controlsubs.c_str());
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -92,26 +107,45 @@ void setup() {
   StaticJsonDocument<256> doc;
 }
 
-String prepareJSONpayload(){
-    StaticJsonDocument<256> doc;
-    doc["nodeName"] = "Node0000";
-    doc["voltage"] = 226.03;
-    doc["ampere1"] = 5.52;
-    doc["ampere2"] = 2.77;
-    doc["ampere3"] = 6.27;
-    doc["phaseAngle1"] = 0.28;
-    doc["phaseAngle2"] = 0.41;
-    doc["phaseAngle3"] = 0.58;
-    doc["power1"] = 35.08;
-    doc["power2"] = 98.76;
-    doc["power3"] = 140.53;
-    doc["relayStatusON"] = true;
-    doc["status"] = "normal";
+float randomFloat(float min, float max) {
+  float random_value = (float)random() / RAND_MAX * (max - min) + min;
+  return round(random_value * 100.0) / 100.0;
+}
+
+void loadValues(){
+  voltage = randomFloat(190.0, 219.0);
+  ampere1 = randomFloat(0.0, 10.0);
+  ampere2 = randomFloat(0.0, 10.0);
+  ampere3 = randomFloat(0.0, 10.0);
+  phaseAngle1 = randomFloat(0.0, 1.0);
+  phaseAngle2 = randomFloat(0.0, 1.0);
+  phaseAngle3 = randomFloat(0.0, 1.0);
+  power1 = randomFloat(0.0, 1000.0);
+  power2 = randomFloat(0.0, 1000.0);
+  power3 = randomFloat(0.0, 1000.0);
+}
+
+String prepareJSONpayload(float voltage, float ampere1, float ampere2, float ampere3, float phaseAngle1, float phaseAngle2, float phaseAngle3, float power1, float power2, float power3, bool relayStatusON, String status) {
+    StaticJsonDocument<512> doc;
+    doc["nodeName"] = nodeName;
+    doc["voltage"] = round(voltage * 100.0) / 100.0;
+    doc["ampere1"] = round(ampere1 * 100.0) / 100.0;
+    doc["ampere2"] = round(ampere2 * 100.0) / 100.0;
+    doc["ampere3"] = round(ampere3 * 100.0) / 100.0;
+    doc["phaseAngle1"] = round(phaseAngle1 * 100.0) / 100.0;
+    doc["phaseAngle2"] = round(phaseAngle2 * 100.0) / 100.0;
+    doc["phaseAngle3"] = round(phaseAngle3 * 100.0) / 100.0;
+    doc["power1"] = round(power1 * 100.0) / 100.0;
+    doc["power2"] = round(power2 * 100.0) / 100.0;
+    doc["power3"] = round(power3 * 100.0) / 100.0;
+    doc["relayStatusON"] = relayStatusON;
+    doc["status"] = status;
     String output;
     serializeJson(doc, output);
     
   return output;
 }
+
 void loop() {
 
   if (!client.connected()) {
@@ -123,7 +157,8 @@ void loop() {
   if (now - lastMsg > 1000) {
     lastMsg = now;
     ++value;
-    String output = prepareJSONpayload();
+    loadValues();
+    String output = prepareJSONpayload(voltage, ampere1, ampere2, ampere3, phaseAngle1, phaseAngle2, phaseAngle3, power1, power2, power3, relayStatusON, status);
     Serial.print("Publish message: ");
     Serial.println(output);
     client.publish("powerdata", output.c_str());
