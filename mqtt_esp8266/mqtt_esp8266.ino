@@ -11,12 +11,9 @@ const char* mqtt_server = "192.168.254.108";
 WiFiClient espClient;
 PubSubClient client(espClient);
 unsigned long lastMsg = 0;
-#define MSG_BUFFER_SIZE	(50)
-char msg[MSG_BUFFER_SIZE];
-int value = 0;
 
 // power data global variables
-String nodeName = "Node0000";
+String nodeName = "Node00000";
 double voltage;
 double ampere1;
 double ampere2;
@@ -27,7 +24,9 @@ double phaseAngle3;
 double power1;
 double power2;
 double power3;
-bool relayStatusON = true;
+bool R1 = true;
+bool R2 = true;
+bool R3 = true;
 String status = "normal";
 String controlsubs = "/relaycontrols/" + nodeName;
 void setup_wifi() {
@@ -74,9 +73,17 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 
   if (doc["nodeName"] == nodeName) {
-    relayStatusON = doc["relayStatusON"];
-    Serial.print("relayStatusON set to: ");
-    Serial.println(relayStatusON);
+    R1 = doc["R1"];
+    Serial.print("relay1 set to: ");
+    Serial.println(R1);
+
+    R2 = doc["R2"];
+    Serial.print("relay2 set to: ");
+    Serial.println(R3);
+
+    R3 = doc["R3"];
+    Serial.print("relay3 set to: ");
+    Serial.println(R3);
   }
 }
 
@@ -131,8 +138,8 @@ void loadValues(){
   power3 = randomFloat(0.0, 1000.0);
 }
 
-String prepareJSONpayload(float voltage, float ampere1, float ampere2, float ampere3, float phaseAngle1, float phaseAngle2, float phaseAngle3, float power1, float power2, float power3, bool relayStatusON, String status) {
-    StaticJsonDocument<256> doc;
+String prepareJSONpayload(float voltage, float ampere1, float ampere2, float ampere3, float phaseAngle1, float phaseAngle2, float phaseAngle3, float power1, float power2, float power3, bool relay1, bool relay2, bool relay3, String status) {
+    StaticJsonDocument<1024> doc;
     doc["nodeName"] = nodeName;
     doc["voltage"] = round(voltage * 100.0) / 100.0;
     doc["ampere1"] = round(ampere1 * 100.0) / 100.0;
@@ -144,7 +151,9 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
     doc["power1"] = round(power1 * 100.0) / 100.0;
     doc["power2"] = round(power2 * 100.0) / 100.0;
     doc["power3"] = round(power3 * 100.0) / 100.0;
-    doc["relayStatusON"] = relayStatusON;
+    doc["R1"] = relay1;
+    doc["R2"] = relay2;
+    doc["R3"] = relay3;
     doc["status"] = status;
     String output;
     serializeJson(doc, output);
@@ -153,7 +162,6 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
 }
 
 void loop() {
-
   if (!client.connected()) {
     reconnect();
   }
@@ -162,9 +170,8 @@ void loop() {
   unsigned long now = millis();
   if (now - lastMsg > 1000) {
     lastMsg = now;
-    ++value;
     loadValues();
-    String output = prepareJSONpayload(voltage, ampere1, ampere2, ampere3, phaseAngle1, phaseAngle2, phaseAngle3, power1, power2, power3, relayStatusON, status);
+    String output = prepareJSONpayload(voltage, ampere1, ampere2, ampere3, phaseAngle1, phaseAngle2, phaseAngle3, power1, power2, power3, R1, R2, R3, status);
     Serial.print("Publish message: ");
     Serial.println(output);
     client.publish("powerdata", output.c_str());
