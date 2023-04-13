@@ -63,15 +63,21 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   Serial.println();
 
-  // Switch on the LED if an 1 was received as first character
-  if ((char)payload[0] == '1') {
-    digitalWrite(BUILTIN_LED, LOW);   // Turn the LED on (Note that LOW is the voltage level
-    // but actually the LED is on; this is because
-    // it is active low on the ESP-01)
-  } else {
-    digitalWrite(BUILTIN_LED, HIGH);  // Turn the LED off by making the voltage HIGH
+  // Parse the incoming JSON message
+  StaticJsonDocument<256> doc;
+  DeserializationError error = deserializeJson(doc, payload, length);
+
+  if (error) {
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.c_str());
+    return;
   }
 
+  if (doc["nodeName"] == nodeName) {
+    relayStatusON = doc["relayStatusON"];
+    Serial.print("relayStatusON set to: ");
+    Serial.println(relayStatusON);
+  }
 }
 
 void reconnect() {
