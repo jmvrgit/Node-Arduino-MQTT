@@ -74,16 +74,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   if (doc["nodeName"] == nodeName) {
     R1 = doc["R1"];
-    Serial.print("relay1 set to: ");
-    Serial.println(R1);
+    // Serial.print("relay1 set to: ");
+    // Serial.println(R1);
 
     R2 = doc["R2"];
-    Serial.print("relay2 set to: ");
-    Serial.println(R2);
+    // Serial.print("relay2 set to: ");
+    // Serial.println(R2);
 
     R3 = doc["R3"];
-    Serial.print("relay3 set to: ");
-    Serial.println(R3);
+    // Serial.print("relay3 set to: ");
+    // Serial.println(R3);
   }
 }
 
@@ -172,8 +172,8 @@ void loop() {
     lastMsg = now;
     loadValues();
     String output = prepareJSONpayload(voltage, ampere1, ampere2, ampere3, phaseAngle1, phaseAngle2, phaseAngle3, power1, power2, power3, R1, R2, R3, status);
-    Serial.print("Publish message: ");
-    Serial.println(output);
+    // Serial.print("Publish message: ");
+    // Serial.println(output);
     client.publish("powerdata", output.c_str());
   }
 }
