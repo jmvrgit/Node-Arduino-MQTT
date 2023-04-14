@@ -126,7 +126,7 @@ float randomFloat(float min, float max) {
 }
 
 void loadValues(){
-  voltage = randomFloat(190.0, 219.0);
+  voltage = randomFloat(220.0, 240.0);
   ampere1 = randomFloat(0.0, 10.0);
   ampere2 = randomFloat(0.0, 10.0);
   ampere3 = randomFloat(0.0, 10.0);
