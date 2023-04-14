@@ -8,6 +8,10 @@ const char* ssid = "Reyes_WIFI_4G";
 const char* password = "jonmarco11";
 const char* mqtt_server = "192.168.254.108";
 
+int relay1Pin = D3;
+int relay2Pin = D4;
+int relay3Pin = D5;
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 unsigned long lastMsg = 0;
@@ -74,14 +78,35 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   if (doc["nodeName"] == nodeName) {
     R1 = doc["R1"];
+    if(R1){
+      digitalWrite(relay1Pin, HIGH);
+      Serial.println("relay 1 on");        
+    } else {
+      digitalWrite(relay1Pin, LOW);
+      Serial.println("relay 1 off");  
+    }
     // Serial.print("relay1 set to: ");
     // Serial.println(R1);
 
     R2 = doc["R2"];
+    if(R2){
+      digitalWrite(relay1Pin, HIGH);
+      Serial.println("relay 2 on");        
+    } else {
+      digitalWrite(relay1Pin, LOW);
+      Serial.println("relay 2 off");  
+    }
     // Serial.print("relay2 set to: ");
     // Serial.println(R2);
 
     R3 = doc["R3"];
+    if(R3){
+      digitalWrite(relay1Pin, HIGH);
+      Serial.println("relay 3 on");        
+    } else {
+      digitalWrite(relay1Pin, LOW);
+      Serial.println("relay 3 off");  
+    }
     // Serial.print("relay3 set to: ");
     // Serial.println(R3);
   }
@@ -139,7 +164,7 @@ void loadValues(){
 }
 
 String prepareJSONpayload(float voltage, float ampere1, float ampere2, float ampere3, float phaseAngle1, float phaseAngle2, float phaseAngle3, float power1, float power2, float power3, bool relay1, bool relay2, bool relay3, String status) {
-    StaticJsonDocument<1024> doc;
+    StaticJsonDocument<384> doc; //https://arduinojson.org/v6/assistant/
     doc["nodeName"] = nodeName;
     doc["voltage"] = round(voltage * 100.0) / 100.0;
     doc["ampere1"] = round(ampere1 * 100.0) / 100.0;
@@ -172,8 +197,8 @@ void loop() {
     lastMsg = now;
     loadValues();
     String output = prepareJSONpayload(voltage, ampere1, ampere2, ampere3, phaseAngle1, phaseAngle2, phaseAngle3, power1, power2, power3, R1, R2, R3, status);
-    // Serial.print("Publish message: ");
-    // Serial.println(output);
+    Serial.print("Publish message: ");
+    Serial.println(output);
     client.publish("powerdata", output.c_str());
   }
 }
