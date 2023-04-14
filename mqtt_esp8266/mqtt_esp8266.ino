@@ -79,7 +79,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
     R2 = doc["R2"];
     Serial.print("relay2 set to: ");
-    Serial.println(R3);
+    Serial.println(R2);
 
     R3 = doc["R3"];
     Serial.print("relay3 set to: ");
