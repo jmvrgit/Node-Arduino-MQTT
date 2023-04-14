@@ -67,7 +67,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println();
 
   // Parse the incoming JSON message
-  StaticJsonDocument<256> doc;
+  StaticJsonDocument<96> doc;
   DeserializationError error = deserializeJson(doc, payload, length);
 
   if (error) {
@@ -193,7 +193,7 @@ void loop() {
   client.loop();
 
   unsigned long now = millis();
-  if (now - lastMsg > 1000) {
+  if (now - lastMsg > 2000) {
     lastMsg = now;
     loadValues();
     String output = prepareJSONpayload(voltage, ampere1, ampere2, ampere3, phaseAngle1, phaseAngle2, phaseAngle3, power1, power2, power3, R1, R2, R3, status);
