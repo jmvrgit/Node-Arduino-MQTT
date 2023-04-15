@@ -75,7 +75,7 @@ Tools > Manage Libraries
 
 Search for ArduinoJson
 
-ArduinoJson by Benolt Blanchon
+
 ``
 Downloading ArduinoJson@6.21.2
 ArduinoJson@6.21.2
@@ -83,3 +83,22 @@ Installing ArduinoJson@6.21.2
 Installed ArduinoJson@6.21.2
 ``
 
+## Install LiquidCrystal I2C 1.0.7 by Frank de Brabander
+
+Tools > Manage Libraries
+
+Search for LiquidCrystal I2C
+
+Downloading LiquidCrystal I2C@1.1.2
+LiquidCrystal I2C@1.1.2
+Installing LiquidCrystal I2C@1.1.2
+Installed LiquidCrystal I2C@1.1.2
+
+## Pin connection
+
+| NodeMCU | LCD |
+|---------|-----|
+| VU      | VCC |
+| G       | GND |
+| D3      | SCL |
+| D4      | SDA |

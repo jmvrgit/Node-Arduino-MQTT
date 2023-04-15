@@ -1,10 +1,13 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
+#include <Wire.h>  // This library is already built in to the Arduino IDE
+#include <LiquidCrystal_I2C.h> //This library you can add via Include Library > Manage Library > 
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-int relay1Pin = D3;
-int relay2Pin = D4;
-int relay3Pin = D5;
+int relay1Pin = D0;
+int relay2Pin = D1;
+int relay3Pin = D2;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -38,7 +41,13 @@ void setup_wifi() {
   // We start by connecting to a WiFi network
   Serial.println();
   Serial.print("Connecting to ");
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Connecting to");
+  lcd.setCursor(0,1);
+  lcd.print(ssid);
   Serial.println(ssid);
+
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
@@ -54,6 +63,10 @@ void setup_wifi() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print(WiFi.localIP());
+
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -121,6 +134,8 @@ void reconnect() {
     // Attempt to connect
     if (client.connect(clientId.c_str())) {
       Serial.println("connected");
+      lcd.setCursor(0,1);
+      lcd.print("MQTT Connected");
       // Once connected, publish an announcement...
       // client.publish("powerdata", "hello world");
       // ... and resubscribe
@@ -138,10 +153,19 @@ void reconnect() {
 void setup() {
   pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
   Serial.begin(115200);
+
+    // LCD
+  Wire.begin(2,0);
+  lcd.init();   // initializing the LCD
+  lcd.backlight(); // Enable or Turn On the backlight 
+  
+  // Wi-Fi  
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
   StaticJsonDocument<256> doc;
+
+
 }
 
 float randomFloat(float min, float max) {
