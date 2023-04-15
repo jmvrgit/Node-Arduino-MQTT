@@ -2,9 +2,16 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
+<<<<<<< Updated upstream
 int relay1Pin = D3;
 int relay2Pin = D4;
 int relay3Pin = D5;
+=======
+//https://www.theengineeringprojects.com/2018/10/introduction-to-nodemcu-v3.html
+const int relay1Pin = 16; //D0
+const int relay2Pin = 5; //D1
+const int relay3Pin = 4; //D2
+>>>>>>> Stashed changes
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -75,37 +82,37 @@ void callback(char* topic, byte* payload, unsigned int length) {
     return;
   }
 
-  if (doc["nodeName"] == nodeName) {
-    R1 = doc["R1"];
-    if(R1){
-      digitalWrite(relay1Pin, HIGH);
-      Serial.println("relay 1 on");        
-    } else {
-      digitalWrite(relay1Pin, LOW);
-      Serial.println("relay 1 off");  
-    }
-    // Serial.print("relay1 set to: ");
-    // Serial.println(R1);
+    if (doc["nodeName"] == nodeName) {
+      R1 = doc["R1"];
+      if(R1){
+        pinMode(relay1Pin, HIGH);
+        Serial.println("relay 1 on");        
+      } else {
+        pinMode(relay1Pin, LOW);
+        Serial.println("relay 1 off");  
+      }
+      // Serial.print("relay1 set to: ");
+      // Serial.println(R1);
 
-    R2 = doc["R2"];
-    if(R2){
-      digitalWrite(relay1Pin, HIGH);
-      Serial.println("relay 2 on");        
-    } else {
-      digitalWrite(relay1Pin, LOW);
-      Serial.println("relay 2 off");  
-    }
-    // Serial.print("relay2 set to: ");
-    // Serial.println(R2);
+      R2 = doc["R2"];
+      if(R2){
+        pinMode(relay2Pin, HIGH);
+        Serial.println("relay 2 on");        
+      } else {
+        pinMode(relay2Pin, LOW);
+        Serial.println("relay 2 off");  
+      }
+      // Serial.print("relay2 set to: ");
+      // Serial.println(R2);
 
-    R3 = doc["R3"];
-    if(R3){
-      digitalWrite(relay1Pin, HIGH);
-      Serial.println("relay 3 on");        
-    } else {
-      digitalWrite(relay1Pin, LOW);
-      Serial.println("relay 3 off");  
-    }
+      R3 = doc["R3"];
+      if(R3){
+        pinMode(relay3Pin, HIGH);
+        Serial.println("relay 3 on");        
+      } else {
+        pinMode(relay3Pin, LOW);
+        Serial.println("relay 3 off");  
+      }
     // Serial.print("relay3 set to: ");
     // Serial.println(R3);
   }
