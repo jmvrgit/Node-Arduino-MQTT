@@ -2,16 +2,10 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
-<<<<<<< Updated upstream
-int relay1Pin = D3;
-int relay2Pin = D4;
-int relay3Pin = D5;
-=======
 //https://www.theengineeringprojects.com/2018/10/introduction-to-nodemcu-v3.html
 const int relay1Pin = 16; //D0
 const int relay2Pin = 5; //D1
 const int relay3Pin = 4; //D2
->>>>>>> Stashed changes
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -143,7 +137,6 @@ void reconnect() {
 }
 
 void setup() {
-  pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
   Serial.begin(115200);
   setup_wifi();
   client.setServer(mqtt_server, 1883);

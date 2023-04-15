@@ -102,3 +102,11 @@ Installed LiquidCrystal I2C@1.1.2
 | G       | GND |
 | D3      | SCL |
 | D4      | SDA |
+
+| NodeMCU | Relay |
+|---------|-------|
+| 3V      | VIN   |
+| GND     | GND   |
+| D0      | IN1   |
+| D1      | IN2   |
+| D2      | IN3   |
