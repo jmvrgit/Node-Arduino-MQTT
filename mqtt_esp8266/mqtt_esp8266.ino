@@ -2,12 +2,6 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
-// Update these with values suitable for your network.
-
-const char* ssid = "Reyes_WIFI_4G";
-const char* password = "jonmarco11";
-const char* mqtt_server = "192.168.254.108";
-
 int relay1Pin = D3;
 int relay2Pin = D4;
 int relay3Pin = D5;
@@ -15,6 +9,11 @@ int relay3Pin = D5;
 WiFiClient espClient;
 PubSubClient client(espClient);
 unsigned long lastMsg = 0;
+
+// Update these with values suitable for your network.
+const char* ssid = "Reyes_WIFI_4G";
+const char* password = "jonmarco11";
+const char* mqtt_server = "192.168.254.108";
 
 // power data global variables
 String nodeName = "Node00000";
