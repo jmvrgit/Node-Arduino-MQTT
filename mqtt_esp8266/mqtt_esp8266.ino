@@ -3,6 +3,9 @@
 #include <ArduinoJson.h>
 #include <Wire.h>  // This library is already built in to the Arduino IDE
 #include <LiquidCrystal_I2C.h> //This library you can add via Include Library > Manage Library > 
+#include <SPI.h> // MicroSD
+#include <SD.h>
+
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 //https://www.theengineeringprojects.com/2018/10/introduction-to-nodemcu-v3.html
@@ -10,6 +13,7 @@ const int relay1Pin = 16; //D0
 const int relay2Pin = 5; //D1
 const int relay3Pin = 4; //D2
 
+File myFile;
 WiFiClient espClient;
 PubSubClient client(espClient);
 unsigned long lastMsg = 0;
@@ -31,11 +35,13 @@ double phaseAngle3;
 double power1;
 double power2;
 double power3;
-bool R1 = true;
-bool R2 = true;
-bool R3 = true;
+bool R1 = false;
+bool R2 = false;
+bool R3 = false;
 String status = "normal";
 String controlsubs = "/relaycontrols/" + nodeName;
+
+
 void setup_wifi() {
 
   delay(10);
@@ -49,7 +55,7 @@ void setup_wifi() {
   lcd.print(ssid);
   Serial.println(ssid);
 
-
+  
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
 
@@ -151,6 +157,23 @@ void reconnect() {
   }
 }
 
+void initializeSD(){
+
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Initializing SD card...");
+
+  if (!SD.begin(15)) {
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("initialization failed!");
+    return;
+  }
+  lcd.setCursor(0,1);
+  lcd.println("SD is OK");
+  delay(3000);
+}
+
 void setup() {
   pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
   Serial.begin(115200);
@@ -160,14 +183,31 @@ void setup() {
   lcd.init();   // initializing the LCD
   lcd.backlight(); // Enable or Turn On the backlight 
   
+  // SD Card
+  initializeSD();
+  myFile = SD.open("test.txt", FILE_WRITE);
+  if (myFile) {
+    Serial.print("Writing to test.txt...");
+    myFile.println("DATE -- BOOT UP INITIALIZED -- ");
+    myFile.close();
+  } else {
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("ERROR:");
+    lcd.setCursor(0,1);
+    lcd.print("TESTFILE FAIL");
+    delay(10000);
+    // if the file didn't open, print an error:
+  }
+
   // Wi-Fi  
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
   StaticJsonDocument<256> doc;
-  pinMode(relay1Pin, HIGH);
-  pinMode(relay2Pin, HIGH);
-  pinMode(relay3Pin, HIGH);
+  pinMode(relay1Pin, LOW);
+  pinMode(relay2Pin, LOW);
+  pinMode(relay3Pin, LOW);
 }
 
 float randomFloat(float min, float max) {
@@ -222,8 +262,21 @@ void loop() {
     lastMsg = now;
     loadValues();
     String output = prepareJSONpayload(voltage, ampere1, ampere2, ampere3, phaseAngle1, phaseAngle2, phaseAngle3, power1, power2, power3, R1, R2, R3, status);
-    Serial.print("Publish message: ");
-    Serial.println(output);
+    // Serial.print("Publish message: ");
+    myFile.println(output);
+    myFile = SD.open("test.txt", FILE_WRITE);
+    if (myFile) {
+      Serial.println(output);
+      myFile.println(output);
+      myFile.close();
+    } else {
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("ERROR:");
+      lcd.setCursor(0,1);
+      lcd.print("LOG WRITE FAIL");
+      // if the file didn't open, print an error:
+  }
     client.publish("powerdata", output.c_str());
   }
 }
