@@ -54,7 +54,6 @@ void setup_wifi() {
   lcd.setCursor(0,1);
   lcd.print(ssid);
   Serial.println(ssid);
-
   
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);

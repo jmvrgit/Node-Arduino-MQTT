@@ -110,3 +110,12 @@ Installed LiquidCrystal I2C@1.1.2
 | D0      | IN1   |
 | D1      | IN2   |
 | D2      | IN3   | 
+
+| NodeMCU               | SD Card Module |
+|-----------------------|----------------|
+| D5                    | SCK            |
+| D6                    | MOSO (sic)     |
+| D7                    | MISO           |
+| D8                    | CS             |
+| 5V (extension board)  | VCC            |
+| GND (extension board) | GND            |
