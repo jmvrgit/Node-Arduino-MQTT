@@ -109,4 +109,4 @@ Installed LiquidCrystal I2C@1.1.2
 | GND     | GND   |
 | D0      | IN1   |
 | D1      | IN2   |
-| D2      | IN3   |
+| D2      | IN3   | 

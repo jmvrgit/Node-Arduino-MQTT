@@ -93,10 +93,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
     R1 = doc["R1"];
     if(R1){
       pinMode(relay1Pin, HIGH);
-      Serial.println("relay 1 on");        
+      Serial.println("relay 1 on");
     } else {
       pinMode(relay1Pin, LOW);
-      Serial.println("relay 1 off");  
+      Serial.println("relay 1 off");
     }
     // Serial.print("relay1 set to: ");
     // Serial.println(R1);
@@ -165,8 +165,9 @@ void setup() {
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
   StaticJsonDocument<256> doc;
-
-
+  pinMode(relay1Pin, HIGH);
+  pinMode(relay2Pin, HIGH);
+  pinMode(relay3Pin, HIGH);
 }
 
 float randomFloat(float min, float max) {
@@ -189,17 +190,17 @@ void loadValues(){
 
 String prepareJSONpayload(float voltage, float ampere1, float ampere2, float ampere3, float phaseAngle1, float phaseAngle2, float phaseAngle3, float power1, float power2, float power3, bool relay1, bool relay2, bool relay3, String status) {
     StaticJsonDocument<384> doc; //https://arduinojson.org/v6/assistant/
-    doc["nodeName"] = nodeName;
-    doc["voltage"] = round(voltage * 100.0) / 100.0;
-    doc["ampere1"] = round(ampere1 * 100.0) / 100.0;
-    doc["ampere2"] = round(ampere2 * 100.0) / 100.0;
-    doc["ampere3"] = round(ampere3 * 100.0) / 100.0;
-    doc["phaseAngle1"] = round(phaseAngle1 * 100.0) / 100.0;
-    doc["phaseAngle2"] = round(phaseAngle2 * 100.0) / 100.0;
-    doc["phaseAngle3"] = round(phaseAngle3 * 100.0) / 100.0;
-    doc["power1"] = round(power1 * 100.0) / 100.0;
-    doc["power2"] = round(power2 * 100.0) / 100.0;
-    doc["power3"] = round(power3 * 100.0) / 100.0;
+    doc["node"] = nodeName;
+    doc["V"] = round(voltage * 100.0) / 100.0;
+    doc["A1"] = round(ampere1 * 100.0) / 100.0;
+    doc["A2"] = round(ampere2 * 100.0) / 100.0;
+    doc["A3"] = round(ampere3 * 100.0) / 100.0;
+    doc["PF1"] = round(phaseAngle1 * 100.0) / 100.0;
+    doc["PF2"] = round(phaseAngle2 * 100.0) / 100.0;
+    doc["PF3"] = round(phaseAngle3 * 100.0) / 100.0;
+    doc["W1"] = round(power1 * 100.0) / 100.0;
+    doc["W2"] = round(power2 * 100.0) / 100.0;
+    doc["W3"] = round(power3 * 100.0) / 100.0;
     doc["R1"] = relay1;
     doc["R2"] = relay2;
     doc["R3"] = relay3;
