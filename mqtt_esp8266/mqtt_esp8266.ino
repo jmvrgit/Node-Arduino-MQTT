@@ -5,7 +5,7 @@
 #include <LiquidCrystal_I2C.h> //This library you can add via Include Library > Manage Library > 
 #include <SPI.h> // MicroSD
 #include <SD.h>
-
+#include "RTClib.h"
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 //https://www.theengineeringprojects.com/2018/10/introduction-to-nodemcu-v3.html
@@ -18,13 +18,17 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 unsigned long lastMsg = 0;
 
+// RTC
+RTC_DS1307 rtc;
+char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+
 // Update these with values suitable for your network.
 const char* ssid = "Reyes_WIFI_4G";
 const char* password = "jonmarco11";
 const char* mqtt_server = "192.168.254.108";
 
 // power data global variables
-String nodeName = "Node00000";
+String nodeName = "Node00001";
 double voltage;
 double ampere1;
 double ampere2;
@@ -174,6 +178,10 @@ void initializeSD(){
 }
 
 void setup() {
+  #ifndef ESP8266
+  while (!Serial); // wait for serial port to connect. Needed for native USB -- RTC
+  #endif
+
   pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
   Serial.begin(115200);
 
@@ -181,7 +189,23 @@ void setup() {
   Wire.begin(2,0);
   lcd.init();   // initializing the LCD
   lcd.backlight(); // Enable or Turn On the backlight 
-  
+
+  // RTC
+  if (! rtc.begin()) {
+    Serial.println("Couldn't find RTC");
+    Serial.flush();
+    while (1) delay(10);
+  }
+
+  if (! rtc.isrunning()) {
+    Serial.println("RTC is NOT running, let's set the time!");
+    // When time needs to be set on a new device, or after a power loss, the
+    // following line sets the RTC to the date & time this sketch was compiled
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    // This line sets the RTC with an explicit date & time, for example to set
+    // January 21, 2014 at 3am you would call:
+    // rtc.adjust(DateTime(2023, 04, 23, 0, 49, 0));
+  }
   // SD Card
   initializeSD();
   myFile = SD.open("test.txt", FILE_WRITE);
@@ -198,6 +222,7 @@ void setup() {
     delay(10000);
     // if the file didn't open, print an error:
   }
+
 
   // Wi-Fi  
   setup_wifi();
@@ -277,5 +302,22 @@ void loop() {
       // if the file didn't open, print an error:
   }
     client.publish("powerdata", output.c_str());
+
+    DateTime now = rtc.now();
+
+    Serial.print(now.year(), DEC);
+    Serial.print('/');
+    Serial.print(now.month(), DEC);
+    Serial.print('/');
+    Serial.print(now.day(), DEC);
+    Serial.print(" (");
+    Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
+    Serial.print(") ");
+    Serial.print(now.hour(), DEC);
+    Serial.print(':');
+    Serial.print(now.minute(), DEC);
+    Serial.print(':');
+    Serial.print(now.second(), DEC);
+    Serial.println();
   }
 }
