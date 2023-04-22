@@ -94,18 +94,41 @@ LiquidCrystal I2C@1.1.2
 Installing LiquidCrystal I2C@1.1.2
 Installed LiquidCrystal I2C@1.1.2
 
+## Install RTCLib 2.1.1 by Adafruit
+
+Tools > Manage Libraries
+
+Search for RTCLib
+
+Downloading RTClib@2.1.1
+RTClib@2.1.1
+Installing RTClib@2.1.1
+Installed RTClib@2.1.1
+Downloading Adafruit BusIO@1.14.1
+Adafruit BusIO@1.14.1
+Installing Adafruit BusIO@1.14.1
+Installed Adafruit BusIO@1.14.1
+
+
 ## Pin connection
 
 | NodeMCU | LCD |
 |---------|-----|
-| VU      | VCC |
-| G       | GND |
+| 5V      | VCC |
+| GND     | GND |
 | D3      | SCL |
 | D4      | SDA |
 
+| NodeMCU | DS1307 |
+|---------|--------|
+| GND     | GND    |
+| 5V      | VCC    |
+| D3      | SCL    |
+| D4      | SDA    |
+
 | NodeMCU | Relay |
 |---------|-------|
-| 3V      | VIN   |
+| 5V      | VIN   |
 | GND     | GND   |
 | D0      | IN1   |
 | D1      | IN2   |
