@@ -217,9 +217,9 @@ void setup() {
   }
   // SD Card
   initializeSD();
-  myFile = SD.open("test.txt", FILE_WRITE);
+  myFile = SD.open("log.txt", FILE_WRITE);
   if (myFile) {
-    Serial.print("Writing to test.txt...");
+    Serial.print("Writing to log.txt...");
     myFile.println("DATE -- BOOT UP INITIALIZED -- ");
     myFile.close();
   } else {
@@ -227,7 +227,7 @@ void setup() {
     lcd.setCursor(0,0);
     lcd.print("ERROR:");
     lcd.setCursor(0,1);
-    lcd.print("TESTFILE FAIL");
+    lcd.print("LOGFILE FAIL");
     delay(10000);
     // if the file didn't open, print an error:
   }
@@ -303,9 +303,20 @@ void loop() {
     String output = prepareJSONpayload(voltage, ampere1, ampere2, ampere3, phaseAngle1, phaseAngle2, phaseAngle3, power1, power2, power3, R1, R2, R3, status);
     // Serial.print("Publish message: ");
     myFile.println(output);
-    myFile = SD.open("test.txt", FILE_WRITE);
+    myFile = SD.open("log.txt", FILE_WRITE);
     if (myFile) {
-      Serial.println(output);
+      DateTime now = rtc.now();
+      myFile.print(now.year(), DEC);
+      myFile.print('/');
+      myFile.print(now.month(), DEC);
+      myFile.print('/');
+      myFile.print(now.day(), DEC);
+      myFile.print(now.hour(), DEC);
+      myFile.print(':');
+      myFile.print(now.minute(), DEC);
+      myFile.print(':');
+      myFile.print(now.second(), DEC);
+      // Serial.println(output);
       myFile.println(output);
       myFile.close();
     } else {
@@ -317,22 +328,5 @@ void loop() {
       // if the file didn't open, print an error:
   }
     client.publish("powerdata", output.c_str());
-
-    DateTime now = rtc.now();
-
-    Serial.print(now.year(), DEC);
-    Serial.print('/');
-    Serial.print(now.month(), DEC);
-    Serial.print('/');
-    Serial.print(now.day(), DEC);
-    Serial.print(" (");
-    Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
-    Serial.print(") ");
-    Serial.print(now.hour(), DEC);
-    Serial.print(':');
-    Serial.print(now.minute(), DEC);
-    Serial.print(':');
-    Serial.print(now.second(), DEC);
-    Serial.println();
   }
 }
