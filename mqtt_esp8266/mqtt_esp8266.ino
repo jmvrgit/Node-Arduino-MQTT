@@ -7,11 +7,20 @@
 #include <SD.h>
 #include "RTClib.h"
 LiquidCrystal_I2C lcd(0x27, 16, 2);
+// PZEM
+#include <PZEM004Tv30.h>
+#include <SoftwareSerial.h>
+#define USE_SOFTWARE_SERIAL true 
+#define PZEM_RX_PIN 5
+#define PZEM_TX_PIN 4
+#define NUM_PZEMS 3
+PZEM004Tv30 pzems[NUM_PZEMS];
+SoftwareSerial pzemSWSerial(PZEM_RX_PIN, PZEM_TX_PIN);
 
-//https://www.theengineeringprojects.com/2018/10/introduction-to-nodemcu-v3.html
-const int relay1Pin = 16; //D0
-const int relay2Pin = 5; //D1
-const int relay3Pin = 4; //D2
+// //https://www.theengineeringprojects.com/2018/10/introduction-to-nodemcu-v3.html
+// const int relay1Pin = 16; //D0
+// const int relay2Pin = 5; //D1
+// const int relay3Pin = 4; //D2
 
 File myFile;
 WiFiClient espClient;
@@ -101,10 +110,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if (doc["nodeName"] == nodeName) {
     R1 = doc["R1"];
     if(R1){
-      pinMode(relay1Pin, HIGH);
+      // pinMode(relay1Pin, HIGH);
       Serial.println("relay 1 on");
     } else {
-      pinMode(relay1Pin, LOW);
+      // pinMode(relay1Pin, LOW);
       Serial.println("relay 1 off");
     }
     // Serial.print("relay1 set to: ");
@@ -112,10 +121,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
     R2 = doc["R2"];
     if(R2){
-      pinMode(relay2Pin, HIGH);
+      // pinMode(relay2Pin, HIGH);
       Serial.println("relay 2 on");        
     } else {
-      pinMode(relay2Pin, LOW);
+      // pinMode(relay2Pin, LOW);
       Serial.println("relay 2 off");  
     }
     // Serial.print("relay2 set to: ");
@@ -123,10 +132,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
     R3 = doc["R3"];
     if(R3){
-      pinMode(relay3Pin, HIGH);
+      // pinMode(relay3Pin, HIGH);
       Serial.println("relay 3 on");        
     } else {
-      pinMode(relay3Pin, LOW);
+      // pinMode(relay3Pin, LOW);
       Serial.println("relay 3 off");  
     }
     // Serial.print("relay3 set to: ");
@@ -229,27 +238,33 @@ void setup() {
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
   StaticJsonDocument<256> doc;
-  pinMode(relay1Pin, LOW);
-  pinMode(relay2Pin, LOW);
-  pinMode(relay3Pin, LOW);
+  // pinMode(relay1Pin, LOW);
+  // pinMode(relay2Pin, LOW);
+  // pinMode(relay3Pin, LOW);
+
+  // For each PZEM, initialize it
+    for(int i = 0; i < NUM_PZEMS; i++)
+    {
+       pzems[i] = PZEM004Tv30(pzemSWSerial, 0x11 + i);
+    }
 }
 
-float randomFloat(float min, float max) {
-  float random_value = (float)random() / RAND_MAX * (max - min) + min;
-  return round(random_value * 100.0) / 100.0;
-}
+// float randomFloat(float min, float max) {
+//   float random_value = (float)random() / RAND_MAX * (max - min) + min;
+//   return round(random_value * 100.0) / 100.0;
+// }
 
 void loadValues(){
-  voltage = randomFloat(220.0, 240.0);
-  ampere1 = randomFloat(0.0, 10.0);
-  ampere2 = randomFloat(0.0, 10.0);
-  ampere3 = randomFloat(0.0, 10.0);
-  phaseAngle1 = randomFloat(0.0, 1.0);
-  phaseAngle2 = randomFloat(0.0, 1.0);
-  phaseAngle3 = randomFloat(0.0, 1.0);
-  power1 = randomFloat(0.0, 1000.0);
-  power2 = randomFloat(0.0, 1000.0);
-  power3 = randomFloat(0.0, 1000.0);
+  voltage = pzems[0].voltage();
+  ampere1 = pzems[0].current();
+  ampere2 = pzems[1].current();
+  ampere3 = pzems[2].current();
+  phaseAngle1 = pzems[0].pf();
+  phaseAngle2 = pzems[1].pf();
+  phaseAngle3 = pzems[2].pf();
+  power1 = pzems[0].power();
+  power2 = pzems[1].power();
+  power3 = pzems[2].power();
 }
 
 String prepareJSONpayload(float voltage, float ampere1, float ampere2, float ampere3, float phaseAngle1, float phaseAngle2, float phaseAngle3, float power1, float power2, float power3, bool relay1, bool relay2, bool relay3, String status) {

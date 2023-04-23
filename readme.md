@@ -109,6 +109,16 @@ Adafruit BusIO@1.14.1
 Installing Adafruit BusIO@1.14.1
 Installed Adafruit BusIO@1.14.1
 
+## Install PZEM004Tv30 by Jakub Mandula
+
+Tools > Manage Libraries
+
+Search for PZEM004Tv30
+
+Downloading PZEM004Tv30@1.1.2
+PZEM004Tv30@1.1.2
+Installing PZEM004Tv30@1.1.2
+Installed PZEM004Tv30@1.1.2
 
 ## Pin connection
 
