@@ -148,7 +148,7 @@ Installed PZEM004Tv30@1.1.2
 |-----------------------|----------------|
 | D5                    | SCK            |
 | D6                    | MOSO (sic)     |
-| D7                    | MISO           |
+| D7                    | MOSI           |
 | D8                    | CS             |
 | 5V (extension board)  | VCC            |
 | GND (extension board) | GND            |
