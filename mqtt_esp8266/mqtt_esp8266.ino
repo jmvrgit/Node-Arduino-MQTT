@@ -311,6 +311,7 @@ void loop() {
       myFile.print(now.month(), DEC);
       myFile.print('/');
       myFile.print(now.day(), DEC);
+      myFile.print(' ');
       myFile.print(now.hour(), DEC);
       myFile.print(':');
       myFile.print(now.minute(), DEC);
