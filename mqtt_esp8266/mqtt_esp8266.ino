@@ -220,7 +220,20 @@ void setup() {
   myFile = SD.open("log.txt", FILE_WRITE);
   if (myFile) {
     Serial.print("Writing to log.txt...");
-    myFile.println("DATE -- BOOT UP INITIALIZED -- ");
+    DateTime now = rtc.now();
+    myFile.print("-- ");
+    myFile.print(now.year(), DEC);
+    myFile.print('/');
+    myFile.print(now.month(), DEC);
+    myFile.print('/');
+    myFile.print(now.day(), DEC);
+    myFile.print(' ');
+    myFile.print(now.hour(), DEC);
+    myFile.print(':');
+    myFile.print(now.minute(), DEC);
+    myFile.print(':');
+    myFile.print(now.second(), DEC);
+    myFile.println(" BOOT UP INITIALIZED -- ");
     myFile.close();
   } else {
     lcd.clear();
