@@ -219,7 +219,7 @@ void setup() {
   initializeSD();
   myFile = SD.open("log.txt", FILE_WRITE);
   if (myFile) {
-    Serial.print("Writing to log.txt...");
+    // Serial.print("Writing to log.txt...");
     DateTime now = rtc.now();
     myFile.print("-- ");
     myFile.print(now.year(), DEC);
