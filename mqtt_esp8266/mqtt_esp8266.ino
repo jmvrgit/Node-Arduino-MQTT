@@ -296,7 +296,29 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
     doc["R1"] = relay1;
     doc["R2"] = relay2;
     doc["R3"] = relay3;
-    doc["status"] = status;
+    Serial.println(voltage);
+    if(isnan(voltage)){
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("STATUS:");
+      lcd.setCursor(0,1);
+      lcd.print("Blackout");
+      doc["status"] = "blackout";
+    } else if (voltage < 200){ // Brownout defined when voltage is less than 200V
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("STATUS:");
+      lcd.setCursor(0,1);
+      lcd.print("Brownout");
+      doc["status"] = "brownout";
+    } else {
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("STATUS:");
+      lcd.setCursor(0,1);
+      lcd.print("Normal");
+      doc["status"] = "normal";
+    }
     String output;
     serializeJson(doc, output);
     
