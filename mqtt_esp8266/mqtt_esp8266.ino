@@ -59,29 +59,29 @@ void setup_wifi() {
 
   delay(10);
   // We start by connecting to a WiFi network
-  Serial.println();
-  Serial.print("Connecting to ");
+  // Serial.println();
+  // Serial.print("Connecting to ");
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("Connecting to");
   lcd.setCursor(0,1);
   lcd.print(ssid);
-  Serial.println(ssid);
+  // Serial.println(ssid);
   
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+    // Serial.print(".");
   }
 
   randomSeed(micros());
 
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
+  // Serial.println("");
+  // Serial.println("WiFi connected");
+  // Serial.println("IP address: ");
+  // Serial.println(WiFi.localIP());
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print(WiFi.localIP());
@@ -89,21 +89,21 @@ void setup_wifi() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
+  // Serial.print("Message arrived [");
+  // Serial.print(topic);
+  // Serial.print("] ");
   for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
+    // Serial.print((char)payload[i]);
   }
-  Serial.println();
+  // Serial.println();
 
   // Parse the incoming JSON message
   StaticJsonDocument<96> doc;
   DeserializationError error = deserializeJson(doc, payload, length);
 
   if (error) {
-    Serial.print(F("deserializeJson() failed: "));
-    Serial.println(error.c_str());
+    // Serial.print(F("deserializeJson() failed: "));
+    // Serial.println(error.c_str());
     return;
   }
 
@@ -111,10 +111,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
     R1 = doc["R1"];
     if(R1){
       // pinMode(relay1Pin, HIGH);
-      Serial.println("relay 1 on");
+      // Serial.println("relay 1 on");
     } else {
       // pinMode(relay1Pin, LOW);
-      Serial.println("relay 1 off");
+      // Serial.println("relay 1 off");
     }
     // Serial.print("relay1 set to: ");
     // Serial.println(R1);
@@ -122,10 +122,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
     R2 = doc["R2"];
     if(R2){
       // pinMode(relay2Pin, HIGH);
-      Serial.println("relay 2 on");        
+      // Serial.println("relay 2 on");        
     } else {
       // pinMode(relay2Pin, LOW);
-      Serial.println("relay 2 off");  
+      // Serial.println("relay 2 off");  
     }
     // Serial.print("relay2 set to: ");
     // Serial.println(R2);
@@ -133,10 +133,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
     R3 = doc["R3"];
     if(R3){
       // pinMode(relay3Pin, HIGH);
-      Serial.println("relay 3 on");        
+      // Serial.println("relay 3 on");        
     } else {
       // pinMode(relay3Pin, LOW);
-      Serial.println("relay 3 off");  
+      // Serial.println("relay 3 off");  
     }
     // Serial.print("relay3 set to: ");
     // Serial.println(R3);
@@ -146,13 +146,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
-    Serial.print("Attempting MQTT connection...");
+    // Serial.print("Attempting MQTT connection...");
     // Create a random client ID
     String clientId = "ESP8266Client-";
     clientId += String(random(0xffff), HEX);
     // Attempt to connect
     if (client.connect(clientId.c_str())) {
-      Serial.println("connected");
+      // Serial.println("connected");
       lcd.setCursor(0,1);
       lcd.print("MQTT Connected");
       // Once connected, publish an announcement...
@@ -160,9 +160,9 @@ void reconnect() {
       // ... and resubscribe
       client.subscribe(controlsubs.c_str());
     } else {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
+      // Serial.print("failed, rc=");
+      // Serial.print(client.state());
+      // Serial.println(" try again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(5000);
     }
@@ -296,7 +296,7 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
     doc["R1"] = relay1;
     doc["R2"] = relay2;
     doc["R3"] = relay3;
-    Serial.println(voltage);
+    // Serial.println(voltage);
     if(isnan(voltage)){
       lcd.clear();
       lcd.setCursor(0,0);
