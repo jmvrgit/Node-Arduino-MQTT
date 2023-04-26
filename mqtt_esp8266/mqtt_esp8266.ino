@@ -16,7 +16,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 #define NUM_PZEMS 3
 PZEM004Tv30 pzems[NUM_PZEMS];
 SoftwareSerial pzemSWSerial(PZEM_RX_PIN, PZEM_TX_PIN);
-
+SoftwareSerial GSMSerial(1, 16); //UNUSED RX to TX 16
 // //https://www.theengineeringprojects.com/2018/10/introduction-to-nodemcu-v3.html
 // const int relay1Pin = 16; //D0
 // const int relay2Pin = 5; //D1
@@ -193,7 +193,7 @@ void setup() {
 
   pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
   Serial.begin(115200);
-
+  GSMSerial.begin(9600); // Set GSM Baud at 9600
     // LCD
   Wire.begin(2,0);
   lcd.init();   // initializing the LCD
@@ -245,7 +245,6 @@ void setup() {
     // if the file didn't open, print an error:
   }
 
-
   // Wi-Fi  
   setup_wifi();
   client.setServer(mqtt_server, 1883);
@@ -260,6 +259,17 @@ void setup() {
     {
        pzems[i] = PZEM004Tv30(pzemSWSerial, 0x11 + i);
     }
+  //Send SMS
+    GSMSerial.println("AT+CMGF=1"); // Configuring TEXT mode
+    delay(500);
+    GSMSerial.println("AT+CMGS=\"+639565309575\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
+    delay(500);
+    GSMSerial.print("INITIAL BOOTUP NODE -- "); //text content
+    delay(500);
+    GSMSerial.print(nodeName);
+    delay(500);
+    GSMSerial.write(26);
+    delay(500);
 }
 
 // float randomFloat(float min, float max) {
