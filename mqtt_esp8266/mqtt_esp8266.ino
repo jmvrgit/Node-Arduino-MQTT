@@ -293,19 +293,19 @@ void loadValues(){
 String prepareJSONpayload(float voltage, float ampere1, float ampere2, float ampere3, float phaseAngle1, float phaseAngle2, float phaseAngle3, float power1, float power2, float power3, bool relay1, bool relay2, bool relay3, String status) {
     StaticJsonDocument<384> doc; //https://arduinojson.org/v6/assistant/
     doc["node"] = nodeName;
-    doc["V"] = round(voltage * 100.0) / 100.0;
-    doc["A1"] = round(ampere1 * 100.0) / 100.0;
-    doc["A2"] = round(ampere2 * 100.0) / 100.0;
-    doc["A3"] = round(ampere3 * 100.0) / 100.0;
-    doc["PF1"] = round(phaseAngle1 * 100.0) / 100.0;
-    doc["PF2"] = round(phaseAngle2 * 100.0) / 100.0;
-    doc["PF3"] = round(phaseAngle3 * 100.0) / 100.0;
-    doc["W1"] = round(power1 * 100.0) / 100.0;
-    doc["W2"] = round(power2 * 100.0) / 100.0;
-    doc["W3"] = round(power3 * 100.0) / 100.0;
-    doc["R1"] = relay1;
-    doc["R2"] = relay2;
-    doc["R3"] = relay3;
+    doc["v"] = round(voltage * 100.0) / 100.0;
+    doc["a1"] = round(ampere1 * 100.0) / 100.0;
+    doc["a2"] = round(ampere2 * 100.0) / 100.0;
+    doc["a3"] = round(ampere3 * 100.0) / 100.0;
+    doc["pf1"] = round(phaseAngle1 * 100.0) / 100.0;
+    doc["pf2"] = round(phaseAngle2 * 100.0) / 100.0;
+    doc["pf3"] = round(phaseAngle3 * 100.0) / 100.0;
+    doc["w1"] = round(power1 * 100.0) / 100.0;
+    doc["w2"] = round(power2 * 100.0) / 100.0;
+    doc["w3"] = round(power3 * 100.0) / 100.0;
+    doc["r1"] = relay1;
+    doc["r2"] = relay2;
+    doc["r3"] = relay3;
     // Serial.println(voltage);
     lcd.clear();
     lcd.setCursor(0,0);
