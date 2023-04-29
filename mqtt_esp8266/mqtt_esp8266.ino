@@ -260,16 +260,16 @@ void setup() {
        pzems[i] = PZEM004Tv30(pzemSWSerial, 0x11 + i);
     }
   //Send SMS
-    GSMSerial.println("AT+CMGF=1"); // Configuring TEXT mode
-    delay(500);
-    GSMSerial.println("AT+CMGS=\"+639565309575\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
-    delay(500);
-    GSMSerial.print("INITIAL BOOTUP NODE -- "); //text content
-    delay(500);
-    GSMSerial.print(nodeName);
-    delay(500);
-    GSMSerial.write(26);
-    delay(500);
+    // GSMSerial.println("AT+CMGF=1"); // Configuring TEXT mode
+    // delay(500);
+    // GSMSerial.println("AT+CMGS=\"+639565309575\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
+    // delay(500);
+    // GSMSerial.print("INITIAL BOOTUP NODE -- "); //text content
+    // delay(500);
+    // GSMSerial.print(nodeName);
+    // delay(500);
+    // GSMSerial.write(26);
+    // delay(500);
 }
 
 // float randomFloat(float min, float max) {
