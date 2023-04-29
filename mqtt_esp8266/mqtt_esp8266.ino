@@ -271,11 +271,6 @@ void setup() {
     delay(500);
 }
 
-// float randomFloat(float min, float max) {
-//   float random_value = (float)random() / RAND_MAX * (max - min) + min;
-//   return round(random_value * 100.0) / 100.0;
-// }
-
 void loadValues(){
   voltage = pzems[0].voltage();
   ampere1 = pzems[0].current();
