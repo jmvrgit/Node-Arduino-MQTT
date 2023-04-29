@@ -222,18 +222,9 @@ void setup() {
   if (myFile) {
     // Serial.print("Writing to log.txt...");
     DateTime now = rtc.now();
+    String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
     myFile.print("-- ");
-    myFile.print(now.year(), DEC);
-    myFile.print('/');
-    myFile.print(now.month(), DEC);
-    myFile.print('/');
-    myFile.print(now.day(), DEC);
-    myFile.print(' ');
-    myFile.print(now.hour(), DEC);
-    myFile.print(':');
-    myFile.print(now.minute(), DEC);
-    myFile.print(':');
-    myFile.print(now.second(), DEC);
+    myFile.print(datetime);
     myFile.println(" BOOT UP INITIALIZED -- ");
     myFile.close();
   } else {
@@ -267,13 +258,14 @@ void setup() {
   pcf8574.pinMode(P2, OUTPUT);
   pcf8574.begin();
   //Send SMS
+    DateTime now = rtc.now();
+    String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
+    String message = nodeName + "BOOTUP NOTIFICATION" + " at " + datetime;
     GSMSerial.println("AT+CMGF=1"); // Configuring TEXT mode
     delay(500);
     GSMSerial.println("AT+CMGS=\"+639565309575\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
     delay(500);
-    GSMSerial.print("INITIAL BOOTUP NOTIFICATION -- "); //text content
-    delay(500);
-    GSMSerial.print(nodeName);
+    GSMSerial.print(message); //text content
     delay(500);
     GSMSerial.write(26);
     delay(500);
@@ -333,7 +325,8 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
 
     if(status != prevStatus){
       DateTime now = rtc.now();
-      String message = nodeName + " status changed to " + status + " at " + now.year() + "/" + now.month() + "/" + now.day() + " " + now.hour() + ":" + now.minute() + ":" + now.second();
+      String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
+      String message = nodeName + " status changed to " + status + " at " + datetime;
       GSMSerial.println("AT+CMGF=1");
       delay(500);
       GSMSerial.println("AT+CMGS=\"+639565309575\"");
@@ -366,17 +359,8 @@ void loop() {
     myFile = SD.open("log.txt", FILE_WRITE);
     if (myFile) {
       DateTime now = rtc.now();
-      myFile.print(now.year(), DEC);
-      myFile.print('/');
-      myFile.print(now.month(), DEC);
-      myFile.print('/');
-      myFile.print(now.day(), DEC);
-      myFile.print(' ');
-      myFile.print(now.hour(), DEC);
-      myFile.print(':');
-      myFile.print(now.minute(), DEC);
-      myFile.print(':');
-      myFile.print(now.second(), DEC);
+      String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
+      myFile.print(datetime);
       myFile.println(output);
       myFile.close();
     } else {
