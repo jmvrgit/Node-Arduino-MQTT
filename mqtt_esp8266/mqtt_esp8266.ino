@@ -60,6 +60,7 @@ bool R3 = false;
 String status = "normal";
 String controlsubs = "/relaycontrols/" + nodeName;
 
+String prevStatus = "normal";
 
 void setup_wifi() {
 
@@ -266,16 +267,16 @@ void setup() {
   pcf8574.pinMode(P2, OUTPUT);
   pcf8574.begin();
   //Send SMS
-    // GSMSerial.println("AT+CMGF=1"); // Configuring TEXT mode
-    // delay(500);
-    // GSMSerial.println("AT+CMGS=\"+639565309575\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
-    // delay(500);
-    // GSMSerial.print("INITIAL BOOTUP NODE -- "); //text content
-    // delay(500);
-    // GSMSerial.print(nodeName);
-    // delay(500);
-    // GSMSerial.write(26);
-    // delay(500);
+    GSMSerial.println("AT+CMGF=1"); // Configuring TEXT mode
+    delay(500);
+    GSMSerial.println("AT+CMGS=\"+639565309575\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
+    delay(500);
+    GSMSerial.print("INITIAL BOOTUP NOTIFICATION -- "); //text content
+    delay(500);
+    GSMSerial.print(nodeName);
+    delay(500);
+    GSMSerial.write(26);
+    delay(500);
 }
 
 // float randomFloat(float min, float max) {
@@ -317,15 +318,33 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
     lcd.setCursor(0,0);
     lcd.print("STATUS: ");
     if(isnan(voltage)){
+      status = "blackout";
       lcd.print("Blackout");
       doc["status"] = "blackout";
     } else if (voltage < 200){ // Brownout defined when voltage is less than 200V
+      status = "brownout";
       lcd.print("Brownout");
       doc["status"] = "brownout";
     } else {
+      status = "normal";
       lcd.print("Normal");
       doc["status"] = "normal";
     }
+
+    if(status != prevStatus){
+      DateTime now = rtc.now();
+      String message = nodeName + " status changed to " + status + " at " + now.year() + "/" + now.month() + "/" + now.day() + " " + now.hour() + ":" + now.minute() + ":" + now.second();
+      GSMSerial.println("AT+CMGF=1");
+      delay(500);
+      GSMSerial.println("AT+CMGS=\"+639565309575\"");
+      delay(500);
+      GSMSerial.print(message);
+      delay(500);
+      GSMSerial.write(26);
+      delay(500);
+      prevStatus = status;
+    }
+
     String output;
     serializeJson(doc, output);
   return output;
