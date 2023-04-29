@@ -261,14 +261,14 @@ void setup() {
     DateTime now = rtc.now();
     String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
     String message = nodeName + "BOOTUP NOTIFICATION" + " at " + datetime;
-    GSMSerial.println("AT+CMGF=1"); // Configuring TEXT mode
-    delay(500);
-    GSMSerial.println("AT+CMGS=\"+639565309575\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
-    delay(500);
-    GSMSerial.print(message); //text content
-    delay(500);
-    GSMSerial.write(26);
-    delay(500);
+    // GSMSerial.println("AT+CMGF=1"); // Configuring TEXT mode
+    // delay(500);
+    // GSMSerial.println("AT+CMGS=\"+639565309575\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
+    // delay(500);
+    // GSMSerial.print(message); //text content
+    // delay(500);
+    // GSMSerial.write(26);
+    // delay(500);
 }
 
 void loadValues(){
@@ -322,14 +322,14 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
       DateTime now = rtc.now();
       String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
       String message = nodeName + " status changed to " + status + " at " + datetime;
-      GSMSerial.println("AT+CMGF=1");
-      delay(500);
-      GSMSerial.println("AT+CMGS=\"+639565309575\"");
-      delay(500);
-      GSMSerial.print(message);
-      delay(500);
-      GSMSerial.write(26);
-      delay(500);
+      // GSMSerial.println("AT+CMGF=1");
+      // delay(500);
+      // GSMSerial.println("AT+CMGS=\"+639565309575\"");
+      // delay(500);
+      // GSMSerial.print(message);
+      // delay(500);
+      // GSMSerial.write(26);
+      // delay(500);
       prevStatus = status;
     }
 
