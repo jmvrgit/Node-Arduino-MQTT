@@ -6,6 +6,12 @@
 #include <SPI.h> // MicroSD
 #include <SD.h>
 #include "RTClib.h"
+
+// PCF
+#include "Arduino.h"
+#include "PCF8574.h"
+
+PCF8574 pcf8574(0x20,2,0);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 // PZEM
 #include <PZEM004Tv30.h>
@@ -107,39 +113,33 @@ void callback(char* topic, byte* payload, unsigned int length) {
     return;
   }
 
-  if (doc["nodeName"] == nodeName) {
-    R1 = doc["R1"];
+  if (doc["node"] == nodeName) {
+    R1 = doc["r1"];
     if(R1){
-      // pinMode(relay1Pin, HIGH);
-      // Serial.println("relay 1 on");
+      pcf8574.digitalWrite(P0, LOW);
     } else {
-      // pinMode(relay1Pin, LOW);
-      // Serial.println("relay 1 off");
+      pcf8574.digitalWrite(P0, HIGH);
     }
-    // Serial.print("relay1 set to: ");
-    // Serial.println(R1);
+    Serial.print("relay1 set to: ");
+    Serial.println(R1);
 
-    R2 = doc["R2"];
+    R2 = doc["r2"];
     if(R2){
-      // pinMode(relay2Pin, HIGH);
-      // Serial.println("relay 2 on");        
+      pcf8574.digitalWrite(P1, LOW);      
     } else {
-      // pinMode(relay2Pin, LOW);
-      // Serial.println("relay 2 off");  
+      pcf8574.digitalWrite(P1, HIGH); 
     }
-    // Serial.print("relay2 set to: ");
-    // Serial.println(R2);
+    Serial.print("relay2 set to: ");
+    Serial.println(R2);
 
-    R3 = doc["R3"];
+    R3 = doc["r3"];
     if(R3){
-      // pinMode(relay3Pin, HIGH);
-      // Serial.println("relay 3 on");        
+      pcf8574.digitalWrite(P2, LOW);     
     } else {
-      // pinMode(relay3Pin, LOW);
-      // Serial.println("relay 3 off");  
+      pcf8574.digitalWrite(P2, HIGH); 
     }
-    // Serial.print("relay3 set to: ");
-    // Serial.println(R3);
+    Serial.print("relay3 set to: ");
+    Serial.println(R3);
   }
 }
 
@@ -259,6 +259,12 @@ void setup() {
     {
        pzems[i] = PZEM004Tv30(pzemSWSerial, 0x11 + i);
     }
+
+  // SET Relays
+  pcf8574.pinMode(P0, OUTPUT);
+  pcf8574.pinMode(P1, OUTPUT);
+  pcf8574.pinMode(P2, OUTPUT);
+  pcf8574.begin();
   //Send SMS
     // GSMSerial.println("AT+CMGF=1"); // Configuring TEXT mode
     // delay(500);
@@ -332,7 +338,7 @@ void loop() {
   client.loop();
 
   unsigned long now = millis();
-  if (now - lastMsg > 1000) {
+  if (now - lastMsg > 2500) {
     lastMsg = now;
     loadValues();
     String output = prepareJSONpayload(voltage, ampere1, ampere2, ampere3, phaseAngle1, phaseAngle2, phaseAngle3, power1, power2, power3, R1, R2, R3, status);
@@ -352,7 +358,6 @@ void loop() {
       myFile.print(now.minute(), DEC);
       myFile.print(':');
       myFile.print(now.second(), DEC);
-      // Serial.println(output);
       myFile.println(output);
       myFile.close();
     } else {

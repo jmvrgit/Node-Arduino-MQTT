@@ -120,6 +120,11 @@ PZEM004Tv30@1.1.2
 Installing PZEM004Tv30@1.1.2
 Installed PZEM004Tv30@1.1.2
 
+## Install PZEM004Tv30 by Jakub Mandula
+https://github.com/xreef/PCF8574_library
+
+Download Zip, extract to Documents/Arduino/libraries
+
 ## Pin connection
 
 | NodeMCU | LCD |
