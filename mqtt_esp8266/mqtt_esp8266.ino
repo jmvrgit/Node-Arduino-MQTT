@@ -121,8 +121,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } else {
       pcf8574.digitalWrite(P0, HIGH);
     }
-    Serial.print("relay1 set to: ");
-    Serial.println(R1);
+    // Serial.print("relay1 set to: ");
+    // Serial.println(R1);
 
     R2 = doc["r2"];
     if(R2){
@@ -130,8 +130,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } else {
       pcf8574.digitalWrite(P1, HIGH); 
     }
-    Serial.print("relay2 set to: ");
-    Serial.println(R2);
+    // Serial.print("relay2 set to: ");
+    // Serial.println(R2);
 
     R3 = doc["r3"];
     if(R3){
@@ -139,8 +139,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } else {
       pcf8574.digitalWrite(P2, HIGH); 
     }
-    Serial.print("relay3 set to: ");
-    Serial.println(R3);
+    // Serial.print("relay3 set to: ");
+    // Serial.println(R3);
   }
 }
 
@@ -202,13 +202,21 @@ void setup() {
 
   // RTC
   if (! rtc.begin()) {
-    Serial.println("Couldn't find RTC");
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("ERROR:");
+    lcd.setCursor(0,1);
+    lcd.print("RTC NOT FOUND");
     Serial.flush();
     while (1) delay(10);
   }
 
   if (! rtc.isrunning()) {
-    Serial.println("RTC is NOT running, let's set the time!");
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("ERROR:");
+    lcd.setCursor(0,1);
+    lcd.print("RTC ERROR 001");
     // When time needs to be set on a new device, or after a power loss, the
     // following line sets the RTC to the date & time this sketch was compiled
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
@@ -223,9 +231,8 @@ void setup() {
     // Serial.print("Writing to log.txt...");
     DateTime now = rtc.now();
     String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
-    myFile.print("-- ");
-    myFile.print(datetime);
-    myFile.println(" BOOT UP INITIALIZED -- ");
+    String message = nodeName + "BOOTUP INITIALIZED" + " at " + datetime;
+    myFile.println(message);
     myFile.close();
   } else {
     lcd.clear();
@@ -284,6 +291,24 @@ void loadValues(){
   power3 = pzems[2].power();
 }
 
+void slowRestore() {
+  for (int i = 0; i < 3; i++) {
+    if (i == 0) {
+      R1 = true;
+      pcf8574.digitalWrite(P0, LOW);
+    }
+    else if (i == 1) {
+      R2 = true;
+      pcf8574.digitalWrite(P1, LOW);
+    }
+    else if (i == 2) {
+      R3 = true;
+      pcf8574.digitalWrite(P2, LOW);
+    }
+    delay(10000);
+  }
+}
+
 String prepareJSONpayload(float voltage, float ampere1, float ampere2, float ampere3, float phaseAngle1, float phaseAngle2, float phaseAngle3, float power1, float power2, float power3, bool relay1, bool relay2, bool relay3, String status) {
     StaticJsonDocument<384> doc; //https://arduinojson.org/v6/assistant/
     doc["node"] = nodeName;
@@ -305,10 +330,16 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
     lcd.setCursor(0,0);
     lcd.print("STATUS: ");
     if(isnan(voltage)){
+      R1 = false;
+      R2 = false;
+      R3 = false;
       status = "blackout";
       lcd.print("Blackout");
       doc["status"] = "blackout";
     } else if (voltage < 200){ // Brownout defined when voltage is less than 200V
+      R1 = false;
+      R2 = false;
+      R3 = false;
       status = "brownout";
       lcd.print("Brownout");
       doc["status"] = "brownout";
@@ -330,6 +361,9 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
       // delay(500);
       // GSMSerial.write(26);
       // delay(500);
+      if (status == "normal"){
+        slowRestore();
+      }
       prevStatus = status;
     }
 
