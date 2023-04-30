@@ -40,6 +40,9 @@ const char* ssid = "Reyes_WIFI_4G";
 const char* password = "jonmarco11";
 const char* mqtt_server = "192.168.254.108";
 
+// GSM
+String contactNumber = "+639565309575";
+
 // power data global variables
 String nodeName = "Node00001";
 double voltage;
@@ -60,6 +63,16 @@ String controlsubs = "/relaycontrols/" + nodeName;
 
 String prevStatus = "normal";
 
+void sendMessage(String message){
+  // GSMSerial.println("AT+CMGF=1");
+  // delay(500);
+  // GSMSerial.println("AT+CMGS=\"" + contactNumber + "\"");
+  // delay(500);
+  // GSMSerial.print(message);
+  // delay(500);
+  // GSMSerial.write(26);
+  // delay(500);
+}
 void setup_wifi() {
 
   delay(10);
@@ -229,7 +242,7 @@ void setup() {
     Serial.print("Writing to log.txt...");
     DateTime now = rtc.now();
     String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
-    String message = nodeName + "BOOTUP INITIALIZED" + " at " + datetime;
+    String message = nodeName + " BOOTUP INITIALIZED" + " at " + datetime;
     myFile.println(message);
     myFile.close();
   } else {
@@ -267,14 +280,7 @@ void setup() {
     String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
     String message = nodeName + "BOOTUP NOTIFICATION" + " at " + datetime;
     Serial.println("GSM MESSAGE: " + message);
-    // GSMSerial.println("AT+CMGF=1"); // Configuring TEXT mode
-    // delay(500);
-    // GSMSerial.println("AT+CMGS=\"+639565309575\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
-    // delay(500);
-    // GSMSerial.print(message); //text content
-    // delay(500);
-    // GSMSerial.write(26);
-    // delay(500);
+    sendMessage(message);
 }
 
 void loadValues(){
@@ -337,19 +343,12 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
     }
 
     if(status != prevStatus){
-      DateTime now = rtc.now();
-      String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
-      String message = nodeName + " status changed to " + status + " at " + datetime;
-      Serial.println("GSM MESSAGE: " + message);
-      // GSMSerial.println("AT+CMGF=1");
-      // delay(500);
-      // GSMSerial.println("AT+CMGS=\"+639565309575\"");
-      // delay(500);
-      // GSMSerial.print(message);
-      // delay(500);
-      // GSMSerial.write(26);
-      // delay(500);
       if (status == "normal"){
+        DateTime now = rtc.now();
+        String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
+        String message = nodeName + " status changed to " + status + " at " + datetime + ". Performing Slow Restore, please wait 10 seconds. Once restored, refresh the page to update.";
+        Serial.println("GSM MESSAGE: " + message);
+        sendMessage(message);
         for (int i = 0; i < 3; i++) {
           if (i == 0) {
             R1 = true;
@@ -365,6 +364,8 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
           }
           delay(3000);
         }
+      } else {
+
       }
       prevStatus = status;
     }
