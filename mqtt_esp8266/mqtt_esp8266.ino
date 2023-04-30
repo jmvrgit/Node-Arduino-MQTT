@@ -6,11 +6,9 @@
 #include <SPI.h> // MicroSD
 #include <SD.h>
 #include "RTClib.h"
-
 // PCF
 #include "Arduino.h"
 #include "PCF8574.h"
-
 PCF8574 pcf8574(0x20,2,0);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 // PZEM
@@ -22,7 +20,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 #define NUM_PZEMS 3
 PZEM004Tv30 pzems[NUM_PZEMS];
 SoftwareSerial pzemSWSerial(PZEM_RX_PIN, PZEM_TX_PIN);
-SoftwareSerial GSMSerial(1, 16); //UNUSED RX to TX 16
+SoftwareSerial GSMSerial(1, 16); //UNUSED RX to TX 16 (D0)
 // //https://www.theengineeringprojects.com/2018/10/introduction-to-nodemcu-v3.html
 // const int relay1Pin = 16; //D0
 // const int relay2Pin = 5; //D1
@@ -66,29 +64,29 @@ void setup_wifi() {
 
   delay(10);
   // We start by connecting to a WiFi network
-  // Serial.println();
-  // Serial.print("Connecting to ");
+  Serial.println();
+  Serial.print("Connecting to ");
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("Connecting to");
   lcd.setCursor(0,1);
   lcd.print(ssid);
-  // Serial.println(ssid);
+  Serial.println(ssid);
   
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    // Serial.print(".");
+    Serial.print(".");
   }
 
   randomSeed(micros());
 
-  // Serial.println("");
-  // Serial.println("WiFi connected");
-  // Serial.println("IP address: ");
-  // Serial.println(WiFi.localIP());
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print(WiFi.localIP());
@@ -96,21 +94,21 @@ void setup_wifi() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  // Serial.print("Message arrived [");
-  // Serial.print(topic);
-  // Serial.print("] ");
+  Serial.print("Message arrived [");
+  Serial.print(topic);
+  Serial.print("] ");
   for (int i = 0; i < length; i++) {
-    // Serial.print((char)payload[i]);
+    Serial.print((char)payload[i]);
   }
-  // Serial.println();
+  Serial.println();
 
   // Parse the incoming JSON message
   StaticJsonDocument<96> doc;
   DeserializationError error = deserializeJson(doc, payload, length);
 
   if (error) {
-    // Serial.print(F("deserializeJson() failed: "));
-    // Serial.println(error.c_str());
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.c_str());
     return;
   }
 
@@ -121,8 +119,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } else {
       pcf8574.digitalWrite(P0, HIGH);
     }
-    // Serial.print("relay1 set to: ");
-    // Serial.println(R1);
+    Serial.print("relay1 set to: ");
+    Serial.println(R1);
 
     R2 = doc["r2"];
     if(R2){
@@ -130,8 +128,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } else {
       pcf8574.digitalWrite(P1, HIGH); 
     }
-    // Serial.print("relay2 set to: ");
-    // Serial.println(R2);
+    Serial.print("relay2 set to: ");
+    Serial.println(R2);
 
     R3 = doc["r3"];
     if(R3){
@@ -139,21 +137,21 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } else {
       pcf8574.digitalWrite(P2, HIGH); 
     }
-    // Serial.print("relay3 set to: ");
-    // Serial.println(R3);
+    Serial.print("relay3 set to: ");
+    Serial.println(R3);
   }
 }
 
 void reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
-    // Serial.print("Attempting MQTT connection...");
+    Serial.print("Attempting MQTT connection...");
     // Create a random client ID
     String clientId = "ESP8266Client-";
     clientId += String(random(0xffff), HEX);
     // Attempt to connect
     if (client.connect(clientId.c_str())) {
-      // Serial.println("connected");
+      Serial.println("connected");
       lcd.setCursor(0,1);
       lcd.print("MQTT Connected");
       // Once connected, publish an announcement...
@@ -161,9 +159,9 @@ void reconnect() {
       // ... and resubscribe
       client.subscribe(controlsubs.c_str());
     } else {
-      // Serial.print("failed, rc=");
-      // Serial.print(client.state());
-      // Serial.println(" try again in 5 seconds");
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(5000);
     }
@@ -194,7 +192,7 @@ void setup() {
 
   pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
   Serial.begin(115200);
-  GSMSerial.begin(9600); // Set GSM Baud at 9600
+  // GSMSerial.begin(9600); // Set GSM Baud at 9600
     // LCD
   Wire.begin(2,0);
   lcd.init();   // initializing the LCD
@@ -228,7 +226,7 @@ void setup() {
   initializeSD();
   myFile = SD.open("log.txt", FILE_WRITE);
   if (myFile) {
-    // Serial.print("Writing to log.txt...");
+    Serial.print("Writing to log.txt...");
     DateTime now = rtc.now();
     String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
     String message = nodeName + "BOOTUP INITIALIZED" + " at " + datetime;
@@ -268,6 +266,7 @@ void setup() {
     DateTime now = rtc.now();
     String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
     String message = nodeName + "BOOTUP NOTIFICATION" + " at " + datetime;
+    Serial.println("GSM MESSAGE: " + message);
     // GSMSerial.println("AT+CMGF=1"); // Configuring TEXT mode
     // delay(500);
     // GSMSerial.println("AT+CMGS=\"+639565309575\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
@@ -289,24 +288,6 @@ void loadValues(){
   power1 = pzems[0].power();
   power2 = pzems[1].power();
   power3 = pzems[2].power();
-}
-
-void slowRestore() {
-  for (int i = 0; i < 3; i++) {
-    if (i == 0) {
-      R1 = true;
-      pcf8574.digitalWrite(P0, LOW);
-    }
-    else if (i == 1) {
-      R2 = true;
-      pcf8574.digitalWrite(P1, LOW);
-    }
-    else if (i == 2) {
-      R3 = true;
-      pcf8574.digitalWrite(P2, LOW);
-    }
-    delay(10000);
-  }
 }
 
 String prepareJSONpayload(float voltage, float ampere1, float ampere2, float ampere3, float phaseAngle1, float phaseAngle2, float phaseAngle3, float power1, float power2, float power3, bool relay1, bool relay2, bool relay3, String status) {
@@ -333,6 +314,9 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
       R1 = false;
       R2 = false;
       R3 = false;
+      pcf8574.digitalWrite(P0, HIGH);
+      pcf8574.digitalWrite(P1, HIGH);
+      pcf8574.digitalWrite(P2, HIGH);
       status = "blackout";
       lcd.print("Blackout");
       doc["status"] = "blackout";
@@ -340,6 +324,9 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
       R1 = false;
       R2 = false;
       R3 = false;
+      pcf8574.digitalWrite(P0, HIGH);
+      pcf8574.digitalWrite(P1, HIGH);
+      pcf8574.digitalWrite(P2, HIGH);
       status = "brownout";
       lcd.print("Brownout");
       doc["status"] = "brownout";
@@ -353,6 +340,7 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
       DateTime now = rtc.now();
       String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
       String message = nodeName + " status changed to " + status + " at " + datetime;
+      Serial.println("GSM MESSAGE: " + message);
       // GSMSerial.println("AT+CMGF=1");
       // delay(500);
       // GSMSerial.println("AT+CMGS=\"+639565309575\"");
@@ -362,7 +350,21 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
       // GSMSerial.write(26);
       // delay(500);
       if (status == "normal"){
-        slowRestore();
+        for (int i = 0; i < 3; i++) {
+          if (i == 0) {
+            R1 = true;
+            pcf8574.digitalWrite(P0, LOW);
+          }
+          else if (i == 1) {
+            R2 = true;
+            pcf8574.digitalWrite(P1, LOW);
+          }
+          else if (i == 2) {
+            R3 = true;
+            pcf8574.digitalWrite(P2, LOW);
+          }
+          delay(3000);
+        }
       }
       prevStatus = status;
     }
@@ -377,20 +379,18 @@ void loop() {
     reconnect();
   }
   client.loop();
-
   unsigned long now = millis();
   if (now - lastMsg > 2500) {
     lastMsg = now;
     loadValues();
     String output = prepareJSONpayload(voltage, ampere1, ampere2, ampere3, phaseAngle1, phaseAngle2, phaseAngle3, power1, power2, power3, R1, R2, R3, status);
-    // Serial.print("Publish message: ");
-    myFile.println(output);
     myFile = SD.open("log.txt", FILE_WRITE);
     if (myFile) {
       DateTime now = rtc.now();
       String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
       myFile.print(datetime);
       myFile.println(output);
+      Serial.println(output);
       myFile.close();
     } else {
       lcd.clear();
