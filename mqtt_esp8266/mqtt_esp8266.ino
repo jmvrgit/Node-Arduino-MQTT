@@ -22,9 +22,6 @@ PZEM004Tv30 pzems[NUM_PZEMS];
 SoftwareSerial pzemSWSerial(PZEM_RX_PIN, PZEM_TX_PIN);
 SoftwareSerial GSMSerial(1, 16); //UNUSED RX to TX 16 (D0)
 // //https://www.theengineeringprojects.com/2018/10/introduction-to-nodemcu-v3.html
-// const int relay1Pin = 16; //D0
-// const int relay2Pin = 5; //D1
-// const int relay3Pin = 4; //D2
 
 File myFile;
 WiFiClient espClient;
@@ -41,7 +38,7 @@ const char* password = "jonmarco11";
 const char* mqtt_server = "192.168.254.108";
 
 // GSM
-String contactNumber = "+639565309575";
+String contactNumber = "+639394992685";
 
 // power data global variables
 String nodeName = "Node00001";
@@ -55,6 +52,9 @@ double phaseAngle3;
 double power1;
 double power2;
 double power3;
+double energy1;
+double energy2;
+double energy3;
 bool R1 = false;
 bool R2 = false;
 bool R3 = false;
@@ -260,9 +260,6 @@ void setup() {
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
   StaticJsonDocument<256> doc;
-  // pinMode(relay1Pin, LOW);
-  // pinMode(relay2Pin, LOW);
-  // pinMode(relay3Pin, LOW);
 
   // For each PZEM, initialize it
     for(int i = 0; i < NUM_PZEMS; i++)
@@ -294,9 +291,12 @@ void loadValues(){
   power1 = pzems[0].power();
   power2 = pzems[1].power();
   power3 = pzems[2].power();
+  energy1 = pzems[0].energy();
+  energy2 = pzems[1].energy();
+  energy3 = pzems[2].energy();
 }
 
-String prepareJSONpayload(float voltage, float ampere1, float ampere2, float ampere3, float phaseAngle1, float phaseAngle2, float phaseAngle3, float power1, float power2, float power3, bool relay1, bool relay2, bool relay3, String status) {
+String prepareJSONpayload(float voltage, float ampere1, float ampere2, float ampere3, float phaseAngle1, float phaseAngle2, float phaseAngle3, float power1, float power2, float power3, float energy1, float energy2, float energy3, bool relay1, bool relay2, bool relay3, String status) {
     StaticJsonDocument<384> doc; //https://arduinojson.org/v6/assistant/
     doc["node"] = nodeName;
     doc["v"] = round(voltage * 100.0) / 100.0;
@@ -309,6 +309,9 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
     doc["w1"] = round(power1 * 100.0) / 100.0;
     doc["w2"] = round(power2 * 100.0) / 100.0;
     doc["w3"] = round(power3 * 100.0) / 100.0;
+    doc["e1"] = round(energy1 * 100.0) / 100.0;
+    doc["e2"] = round(energy2 * 100.0) / 100.0;
+    doc["e3"] = round(energy3 * 100.0) / 100.0;
     doc["r1"] = relay1;
     doc["r2"] = relay2;
     doc["r3"] = relay3;
@@ -341,14 +344,13 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
       lcd.print("Normal");
       doc["status"] = "normal";
     }
-
     if(status != prevStatus){
+      DateTime now = rtc.now();
+      String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
+      String message = "";
       if (status == "normal"){
-        DateTime now = rtc.now();
-        String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
-        String message = nodeName + " status changed to " + status + " at " + datetime + ". Performing Slow Restore, please wait 10 seconds. Once restored, refresh the page to update.";
+        message = nodeName + " status changed to " + status + " at " + datetime + ". Slow Restoration is in progress.";
         Serial.println("GSM MESSAGE: " + message);
-        sendMessage(message);
         for (int i = 0; i < 3; i++) {
           if (i == 0) {
             R1 = true;
@@ -365,11 +367,12 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
           delay(3000);
         }
       } else {
-
+        message = nodeName + " status changed to " + status + " at " + datetime + ".";
+        Serial.println("GSM MESSAGE: " + message);
       }
+      sendMessage(message);
       prevStatus = status;
     }
-
     String output;
     serializeJson(doc, output);
   return output;
@@ -384,7 +387,7 @@ void loop() {
   if (now - lastMsg > 2500) {
     lastMsg = now;
     loadValues();
-    String output = prepareJSONpayload(voltage, ampere1, ampere2, ampere3, phaseAngle1, phaseAngle2, phaseAngle3, power1, power2, power3, R1, R2, R3, status);
+    String output = prepareJSONpayload(voltage, ampere1, ampere2, ampere3, phaseAngle1, phaseAngle2, phaseAngle3, power1, power2, power3, energy1, energy2, energy3, R1, R2, R3, status);
     myFile = SD.open("log.txt", FILE_WRITE);
     if (myFile) {
       DateTime now = rtc.now();
