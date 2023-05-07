@@ -73,6 +73,30 @@ void sendMessage(String message){
   // GSMSerial.write(26);
   // delay(500);
 }
+
+bool loadConfig(const char* filename, const char*& ssid, const char*& password, const char*& mqtt_server, String& contactNumber, String& nodeName) {
+  File configFile = SD.open(filename);
+  while (!configFile) {
+    Serial.println("Error: config.conf missing");
+  }
+
+  StaticJsonDocument<384> doc;
+  DeserializationError error = deserializeJson(doc, configFile);
+  configFile.close();
+
+  if (error) {
+    Serial.println("Error: Failed to read config.conf");
+    return false;
+  }
+
+  ssid = strdup(doc["ssid"].as<String>().c_str());
+  password = strdup(doc["password"].as<String>().c_str());
+  mqtt_server = strdup(doc["mqtt_server"].as<String>().c_str());
+  contactNumber = doc["contactNumber"].as<String>();
+  nodeName = doc["nodeName"].as<String>();
+  return true;
+}
+
 void setup_wifi() {
 
   delay(10);
@@ -253,6 +277,21 @@ void setup() {
     lcd.print("LOGFILE FAIL");
     delay(10000);
     // if the file didn't open, print an error:
+  }
+  //config
+
+  if (loadConfig("config.conf", ssid, password, mqtt_server, contactNumber, nodeName)) {
+    Serial.println("Configuration loaded from config.conf:");
+    Serial.print("SSID: ");
+    Serial.println(ssid);
+    Serial.print("Password: ");
+    Serial.println(password);
+    Serial.print("MQTT Server: ");
+    Serial.println(mqtt_server);
+    Serial.print("Node Name: ");
+    Serial.println(nodeName);
+  } else {
+    Serial.println("Error: Failed to load configuration");
   }
 
   // Wi-Fi  
