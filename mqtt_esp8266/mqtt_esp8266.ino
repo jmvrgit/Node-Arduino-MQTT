@@ -18,6 +18,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 #define PZEM_RX_PIN 5
 #define PZEM_TX_PIN 4
 #define NUM_PZEMS 3
+#define MQTT_DELAY 1000
 PZEM004Tv30 pzems[NUM_PZEMS];
 SoftwareSerial pzemSWSerial(PZEM_RX_PIN, PZEM_TX_PIN);
 SoftwareSerial GSMSerial(1, 16); //UNUSED RX to TX 16 (D0)
@@ -432,7 +433,7 @@ void loop() {
   }
   client.loop();
   unsigned long now = millis();
-  if (now - lastMsg > 2500) {
+  if (now - lastMsg > MQTT_DELAY) {
     lastMsg = now;
     loadValues();
     String output = prepareJSONpayload(voltage, ampere1, ampere2, ampere3, phaseAngle1, phaseAngle2, phaseAngle3, power1, power2, power3, energy1, energy2, energy3, R1, R2, R3, status);
