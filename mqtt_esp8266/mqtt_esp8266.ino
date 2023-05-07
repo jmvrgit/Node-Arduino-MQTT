@@ -390,16 +390,25 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
       if (status == "normal"){
         message = nodeName + " status changed to " + status + " at " + datetime + ". Slow Restoration is in progress.";
         Serial.println("GSM MESSAGE: " + message);
+
+        float energies[] = {energy1, energy2, energy3};
+        int order[] = {0, 1, 2};
+        for (int i = 0; i < 3; ++i) {
+          for (int j = i + 1; j < 3; ++j) {
+            if (energies[i] > energies[j]) {
+                std::swap(energies[i], energies[j]);
+                std::swap(order[i], order[j]);
+            }
+          }
+        }
         for (int i = 0; i < 3; i++) {
-          if (i == 0) {
+          if (order[i] == 0) {
             R1 = true;
             pcf8574.digitalWrite(P0, LOW);
-          }
-          else if (i == 1) {
+          } else if (order[i] == 1) {
             R2 = true;
             pcf8574.digitalWrite(P1, LOW);
-          }
-          else if (i == 2) {
+          } else if (order[i] == 2) {
             R3 = true;
             pcf8574.digitalWrite(P2, LOW);
           }
