@@ -67,14 +67,14 @@ String controlsubs = "/relaycontrols/" + nodeName;
 String prevStatus = "normal";
 
 void sendMessage(String message){
-  // GSMSerial.println("AT+CMGF=1");
-  // delay(500);
-  // GSMSerial.println("AT+CMGS=\"" + contactNumber + "\"");
-  // delay(500);
-  // GSMSerial.print(message);
-  // delay(500);
-  // GSMSerial.write(26);
-  // delay(500);
+  GSMSerial.println("AT+CMGF=1");
+  delay(500);
+  GSMSerial.println("AT+CMGS=\"" + contactNumber + "\"");
+  delay(500);
+  GSMSerial.print(message);
+  delay(500);
+  GSMSerial.write(26);
+  delay(500);
 }
 
 bool loadConfig(const char* filename, const char*& ssid, const char*& password, const char*& mqtt_server, String& contactNumber, String& nodeName) {
@@ -232,7 +232,7 @@ void setup() {
 
   pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
   Serial.begin(115200);
-  // GSMSerial.begin(9600); // Set GSM Baud at 9600
+  GSMSerial.begin(9600); // Set GSM Baud at 9600
     // LCD
   Wire.begin(2,0);
   lcd.init();   // initializing the LCD
