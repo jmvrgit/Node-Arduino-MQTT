@@ -49,6 +49,9 @@ double voltage;
 double ampere1;
 double ampere2;
 double ampere3;
+double ampere1sort;
+double ampere2sort;
+double ampere3sort;
 double phaseAngle1;
 double phaseAngle2;
 double phaseAngle3;
@@ -63,7 +66,6 @@ bool R2 = false;
 bool R3 = false;
 String status = "normal";
 String controlsubs = "";
-
 String prevStatus = "normal";
 
 void sendMessage(String message){
@@ -318,7 +320,7 @@ void setup() {
   //Send SMS
     DateTime now = rtc.now();
     String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
-    String message = nodeName + "BOOTUP NOTIFICATION" + " at " + datetime;
+    String message = nodeName + " BOOTUP NOTIFICATION" + " at " + datetime;
     Serial.println("GSM MESSAGE: " + message);
     sendMessage(message);
 }
@@ -359,6 +361,33 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
     doc["r2"] = relay2;
     doc["r3"] = relay3;
     // Serial.println(voltage);
+
+    if(R1 && !isnan(voltage)){
+        ampere1sort = ampere1;
+    }
+    if(R2 && !isnan(voltage)){
+        ampere2sort = ampere2;
+    }
+    if(R3 && !isnan(voltage)){
+        ampere3sort = ampere3;
+    }
+    // add if R1, r2 r3 is on read amp1 
+    float amperes[] = {ampere1sort, ampere2sort, ampere3sort};
+    int order[] = {0, 1, 2};
+    for (int i = 0; i < 3; ++i) {
+          for (int j = i + 1; j < 3; ++j) {
+            if (amperes[i] > amperes[j]) {
+                std::swap(amperes[i], amperes[j]);
+                std::swap(order[i], order[j]);
+            }
+          }
+        }
+        for (int i = 0; i < 3; ++i) {
+          Serial.print(order[i]);
+          Serial.print(" - ");
+          Serial.println(amperes[i]);
+        }
+
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("STATUS: ");
@@ -395,16 +424,6 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
         message = nodeName + " status changed to " + status + " at " + datetime + ". Slow Restoration is in progress.";
         Serial.println("GSM MESSAGE: " + message);
 
-        float energies[] = {energy1, energy2, energy3};
-        int order[] = {0, 1, 2};
-        for (int i = 0; i < 3; ++i) {
-          for (int j = i + 1; j < 3; ++j) {
-            if (energies[i] > energies[j]) {
-                std::swap(energies[i], energies[j]);
-                std::swap(order[i], order[j]);
-            }
-          }
-        }
         for (int i = 0; i < 3; i++) {
           if (order[i] == 0) {
             R1 = true;
@@ -418,6 +437,7 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
           }
           delay(3000);
         }
+        
       } else {
         message = nodeName + " status changed to " + status + " at " + datetime + ".";
         Serial.println("GSM MESSAGE: " + message);
