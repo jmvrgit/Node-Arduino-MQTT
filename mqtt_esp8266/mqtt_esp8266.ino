@@ -36,15 +36,15 @@ RTC_DS1307 rtc;
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
 // Update these with values suitable for your network.
-const char* ssid = "Reyes_WIFI_4G";
-const char* password = "jonmarco11";
-const char* mqtt_server = "192.168.254.108";
+const char* ssid = "";
+const char* password = "";
+const char* mqtt_server = "";
 
 // GSM
-String contactNumber = "+639394992685";
+String contactNumber = "";
 
 // power data global variables
-String nodeName = "Node00001";
+String nodeName = "";
 double voltage;
 double ampere1;
 double ampere2;
@@ -62,7 +62,7 @@ bool R1 = false;
 bool R2 = false;
 bool R3 = false;
 String status = "normal";
-String controlsubs = "/relaycontrols/" + nodeName;
+String controlsubs = "";
 
 String prevStatus = "normal";
 
@@ -293,6 +293,7 @@ void setup() {
     Serial.println(mqtt_server);
     Serial.print("Node Name: ");
     Serial.println(nodeName);
+    controlsubs = "/relaycontrols/" + nodeName;
   } else {
     Serial.println("Error: Failed to load configuration");
   }
