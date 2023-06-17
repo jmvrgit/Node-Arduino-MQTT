@@ -422,7 +422,8 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
       String message = "";
       if (status == "normal"){
         message = nodeName + " status changed to " + status + " at " + datetime + ". Slow Restoration is in progress.";
-        Serial.println("GSM MESSAGE: " + message);
+        sendMessage(message);
+        // Serial.println("GSM MESSAGE: " + message);
 
         for (int i = 0; i < 3; i++) {
           if (order[i] == 0) {
@@ -440,9 +441,10 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
         
       } else {
         message = nodeName + " status changed to " + status + " at " + datetime + ".";
-        Serial.println("GSM MESSAGE: " + message);
+        sendMessage(message);
+        // Serial.println("GSM MESSAGE: " + message);
       }
-      sendMessage(message);
+      
       prevStatus = status;
     }
     String output;
