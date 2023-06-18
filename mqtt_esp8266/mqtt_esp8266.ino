@@ -1,5 +1,3 @@
-////si in3 po may issue kasi ayaw umilaw then ginawa ko po is yung pin na nasa in3 ni lipat ko sa pin na in1 po, 
-//then yung mga wires na nasa designated na input ng relay 3 nilagay ko po sa relay1
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
