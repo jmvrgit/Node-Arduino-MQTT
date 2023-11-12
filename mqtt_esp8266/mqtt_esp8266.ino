@@ -291,11 +291,20 @@ void setup() {
     Serial.println(password);
     Serial.print("MQTT Server: ");
     Serial.println(mqtt_server);
+    Serial.print("Contact Number: ");
+    Serial.println(contactNumber);
     Serial.print("Node Name: ");
     Serial.println(nodeName);
+
     controlsubs = "/relaycontrols/" + nodeName;
   } else {
     Serial.println("Error: Failed to load configuration");
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("ERROR:");
+    lcd.setCursor(0,1);
+    lcd.print("LOAD CONFIG FAIL");
+    delay(10000);
   }
 
   // Wi-Fi  
@@ -380,11 +389,11 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
             }
           }
         }
-        for (int i = 0; i < 3; ++i) {
-          Serial.print(order[i]);
-          Serial.print(" - ");
-          Serial.println(amperes[i]);
-        }
+        // for (int i = 0; i < 3; ++i) {
+        //   Serial.print(order[i]);
+        //   Serial.print(" - ");
+        //   Serial.println(amperes[i]);
+        // }
 
     lcd.clear();
     lcd.setCursor(0,0);
@@ -440,7 +449,7 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
       } else {
         message = nodeName + " status changed to " + status + " at " + datetime + ".";
         sendMessage(message);
-        // Serial.println("GSM MESSAGE: " + message);
+        Serial.println("GSM MESSAGE: " + message);
       }
       
       prevStatus = status;
