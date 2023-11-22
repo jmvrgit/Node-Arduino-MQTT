@@ -190,6 +190,9 @@ void reconnect() {
     String clientId = "ESP8266Client-";
     clientId += String(random(0xffff), HEX);
     // Attempt to connect
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print(mqtt_server);
     if (client.connect(clientId.c_str())) {
       Serial.println("connected");
       lcd.setCursor(0,1);
@@ -406,7 +409,10 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
       pcf8574.digitalWrite(P1, HIGH);
       pcf8574.digitalWrite(P2, HIGH);
       status = "blackout";
-      lcd.print("Blackout");
+      lcd.setCursor(0,0);
+      lcd.print("BLACKOUT");
+      lcd.setCursor(0,1);
+      lcd.print(nodeName);
       doc["status"] = "blackout";
     } else if (voltage < 200){ // Brownout defined when voltage is less than 200V
       R1 = false;
@@ -416,11 +422,19 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
       pcf8574.digitalWrite(P1, HIGH);
       pcf8574.digitalWrite(P2, HIGH);
       status = "brownout";
-      lcd.print("Brownout");
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("BLACKOUT");
+      lcd.setCursor(0,1);
+      lcd.print(nodeName);
       doc["status"] = "brownout";
     } else {
       status = "normal";
+      lcd.clear();
+      lcd.setCursor(0,0);
       lcd.print("Normal");
+      lcd.setCursor(0,1);
+      lcd.print(nodeName);
       doc["status"] = "normal";
     }
     if(status != prevStatus){
@@ -485,6 +499,8 @@ void loop() {
       lcd.print("LOG WRITE FAIL");
       // if the file didn't open, print an error:
   }
+    String fullTopic = "powerdata/" + nodeName; // Concatenate the base topic with the node name
+    client.publish(fullTopic.c_str(), output.c_str());
     client.publish("powerdata", output.c_str());
   }
 }
