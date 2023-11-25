@@ -1,27 +1,27 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
-#include <Wire.h>  // This library is already built in to the Arduino IDE
-#include <LiquidCrystal_I2C.h> //This library you can add via Include Library > Manage Library > 
-#include <SPI.h> // MicroSD
+#include <Wire.h>               // This library is already built in to the Arduino IDE
+#include <LiquidCrystal_I2C.h>  //This library you can add via Include Library > Manage Library >
+#include <SPI.h>                // MicroSD
 #include <SD.h>
 #include "RTClib.h"
 // PCF
 #include "Arduino.h"
 #include "PCF8574.h"
-PCF8574 pcf8574(0x20,2,0);
+PCF8574 pcf8574(0x20, 2, 0);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 // PZEM
 #include <PZEM004Tv30.h>
 #include <SoftwareSerial.h>
-#define USE_SOFTWARE_SERIAL true 
+#define USE_SOFTWARE_SERIAL true
 #define PZEM_RX_PIN 5
 #define PZEM_TX_PIN 4
 #define NUM_PZEMS 3
-#define MQTT_DELAY 1000
+#define MQTT_DELAY 3000
 PZEM004Tv30 pzems[NUM_PZEMS];
 SoftwareSerial pzemSWSerial(PZEM_RX_PIN, PZEM_TX_PIN);
-SoftwareSerial GSMSerial(1, 16); //UNUSED RX to TX 16 (D0)
+SoftwareSerial GSMSerial(1, 16);  //UNUSED RX to TX 16 (D0)
 // //https://www.theengineeringprojects.com/2018/10/introduction-to-nodemcu-v3.html
 
 File myFile;
@@ -31,7 +31,7 @@ unsigned long lastMsg = 0;
 
 // RTC
 RTC_DS1307 rtc;
-char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+char daysOfTheWeek[7][12] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 
 // Update these with values suitable for your network.
 const char* ssid = "";
@@ -62,11 +62,11 @@ double energy3;
 bool R1 = false;
 bool R2 = false;
 bool R3 = false;
-String status = "normal";
+String status = "";
 String controlsubs = "";
-String prevStatus = "normal";
+String prevStatus = "";
 
-void sendMessage(String message){
+void sendMessage(String message) {
   GSMSerial.println("AT+CMGF=1");
   delay(500);
   GSMSerial.println("AT+CMGS=\"" + contactNumber + "\"");
@@ -77,10 +77,15 @@ void sendMessage(String message){
   delay(500);
 }
 
+String getDate(DateTime now){
+  String dateNow = String(now.year(), DEC) + "/" + String(now.month(), DEC) + "/" + String(now.day(), DEC) + " " + String(now.hour(), DEC) + ":" + String(now.minute(), DEC) + ":" + String(now.second()) + " ";
+  return dateNow;
+}
+
 bool loadConfig(const char* filename, const char*& ssid, const char*& password, const char*& mqtt_server, String& contactNumber, String& nodeName) {
   File configFile = SD.open(filename);
   while (!configFile) {
-    Serial.println("Error: config.conf missing");
+    // Serial.println("Error: config.conf missing");
   }
 
   StaticJsonDocument<384> doc;
@@ -104,159 +109,162 @@ void setup_wifi() {
 
   delay(10);
   // We start by connecting to a WiFi network
-  Serial.println();
-  Serial.print("Connecting to ");
+  // Serial.println();
+  // Serial.print("Connecting to ");
   lcd.clear();
-  lcd.setCursor(0,0);
+  lcd.setCursor(0, 0);
   lcd.print("Connecting to");
-  lcd.setCursor(0,1);
+  lcd.setCursor(0, 1);
   lcd.print(ssid);
-  Serial.println(ssid);
-  
+  // Serial.println(ssid);
+
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+    // Serial.print(".");
   }
 
   randomSeed(micros());
 
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
+  // Serial.println("");
+  // Serial.println("WiFi connected");
+  // Serial.println("IP address: ");
+  // Serial.println(WiFi.localIP());
   lcd.clear();
-  lcd.setCursor(0,0);
+  lcd.setCursor(0, 0);
+  lcd.print("IP Address:");
+  lcd.setCursor(0, 1);
   lcd.print(WiFi.localIP());
-
+  delay(250);
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println();
+  // Serial.print("Message arrived [");
+  // Serial.print(topic);
+  // Serial.print("] ");
+  // for (int i = 0; i < length; i++) {
+  //   Serial.print((char)payload[i]);
+  // }
+  // Serial.println();
 
   // Parse the incoming JSON message
   StaticJsonDocument<96> doc;
   DeserializationError error = deserializeJson(doc, payload, length);
 
   if (error) {
-    Serial.print(F("deserializeJson() failed: "));
-    Serial.println(error.c_str());
+    // Serial.print(F("deserializeJson() failed: "));
+    // Serial.println(error.c_str());
     return;
   }
 
   if (doc["node"] == nodeName) {
     R1 = doc["r1"];
-    if(R1){
+    if (R1) {
       pcf8574.digitalWrite(P0, LOW);
     } else {
       pcf8574.digitalWrite(P0, HIGH);
     }
-    Serial.print("relay1 set to: ");
-    Serial.println(R1);
+    // Serial.print("relay1 set to: ");
+    // Serial.println(R1);
 
     R2 = doc["r2"];
-    if(R2){
-      pcf8574.digitalWrite(P1, LOW);      
+    if (R2) {
+      pcf8574.digitalWrite(P1, LOW);
     } else {
-      pcf8574.digitalWrite(P1, HIGH); 
+      pcf8574.digitalWrite(P1, HIGH);
     }
-    Serial.print("relay2 set to: ");
-    Serial.println(R2);
+    // Serial.print("relay2 set to: ");
+    // Serial.println(R2);
 
     R3 = doc["r3"];
-    if(R3){
-      pcf8574.digitalWrite(P2, LOW);     
+    if (R3) {
+      pcf8574.digitalWrite(P2, LOW);
     } else {
-      pcf8574.digitalWrite(P2, HIGH); 
+      pcf8574.digitalWrite(P2, HIGH);
     }
-    Serial.print("relay3 set to: ");
-    Serial.println(R3);
+    // Serial.print("relay3 set to: ");
+    // Serial.println(R3);
   }
 }
 
 void reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
-    Serial.print("Attempting MQTT connection...");
+    // Serial.print("Attempting MQTT connection...");
     // Create a random client ID
     String clientId = "ESP8266Client-";
     clientId += String(random(0xffff), HEX);
     // Attempt to connect
     lcd.clear();
-    lcd.setCursor(0,0);
+    lcd.setCursor(0, 0);
     lcd.print(mqtt_server);
     if (client.connect(clientId.c_str())) {
-      Serial.println("connected");
-      lcd.setCursor(0,1);
+      // Serial.println("connected");
+      lcd.setCursor(0, 1);
       lcd.print("MQTT Connected");
       // Once connected, publish an announcement...
       // client.publish("powerdata", "hello world");
       // ... and resubscribe
       client.subscribe(controlsubs.c_str());
     } else {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
+      // Serial.print("failed, rc=");
+      // Serial.print(client.state());
+      // Serial.println(" try again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(5000);
     }
   }
 }
 
-void initializeSD(){
+void initializeSD() {
 
   lcd.clear();
-  lcd.setCursor(0,0);
+  lcd.setCursor(0, 0);
   lcd.print("Initializing SD card...");
 
   if (!SD.begin(15)) {
     lcd.clear();
-    lcd.setCursor(0,0);
+    lcd.setCursor(0, 0);
     lcd.print("initialization failed!");
     return;
   }
-  lcd.setCursor(0,1);
+  lcd.setCursor(0, 1);
   lcd.println("SD is OK");
   delay(3000);
 }
 
 void setup() {
-  #ifndef ESP8266
-  while (!Serial); // wait for serial port to connect. Needed for native USB -- RTC
-  #endif
+#ifndef ESP8266
+  while (!Serial)
+    ;  // wait for serial port to connect. Needed for native USB -- RTC
+#endif
 
-  pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
+  pinMode(BUILTIN_LED, OUTPUT);  // Initialize the BUILTIN_LED pin as an output
   Serial.begin(115200);
-  GSMSerial.begin(9600); // Set GSM Baud at 9600
+  GSMSerial.begin(9600);  // Set GSM Baud at 9600
     // LCD
-  Wire.begin(2,0);
-  lcd.init();   // initializing the LCD
-  lcd.backlight(); // Enable or Turn On the backlight 
+  Wire.begin(2, 0);
+  lcd.init();       // initializing the LCD
+  lcd.backlight();  // Enable or Turn On the backlight
 
   // RTC
-  if (! rtc.begin()) {
+  if (!rtc.begin()) {
     lcd.clear();
-    lcd.setCursor(0,0);
+    lcd.setCursor(0, 0);
     lcd.print("ERROR:");
-    lcd.setCursor(0,1);
+    lcd.setCursor(0, 1);
     lcd.print("RTC NOT FOUND");
     Serial.flush();
     while (1) delay(10);
   }
 
-  if (! rtc.isrunning()) {
+  if (!rtc.isrunning()) {
     lcd.clear();
-    lcd.setCursor(0,0);
+    lcd.setCursor(0, 0);
     lcd.print("ERROR:");
-    lcd.setCursor(0,1);
+    lcd.setCursor(0, 1);
     lcd.print("RTC ERROR 001");
     // When time needs to be set on a new device, or after a power loss, the
     // following line sets the RTC to the date & time this sketch was compiled
@@ -271,15 +279,15 @@ void setup() {
   if (myFile) {
     Serial.print("Writing to log.txt...");
     DateTime now = rtc.now();
-    String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
+    String datetime = getDate(now);
     String message = nodeName + " BOOTUP INITIALIZED" + " at " + datetime;
     myFile.println(message);
     myFile.close();
   } else {
     lcd.clear();
-    lcd.setCursor(0,0);
+    lcd.setCursor(0, 0);
     lcd.print("ERROR:");
-    lcd.setCursor(0,1);
+    lcd.setCursor(0, 1);
     lcd.print("LOGFILE FAIL");
     delay(10000);
     // if the file didn't open, print an error:
@@ -287,40 +295,39 @@ void setup() {
   //config
 
   if (loadConfig("config.conf", ssid, password, mqtt_server, contactNumber, nodeName)) {
-    Serial.println("Configuration loaded from config.conf:");
-    Serial.print("SSID: ");
-    Serial.println(ssid);
-    Serial.print("Password: ");
-    Serial.println(password);
-    Serial.print("MQTT Server: ");
-    Serial.println(mqtt_server);
-    Serial.print("Contact Number: ");
-    Serial.println(contactNumber);
-    Serial.print("Node Name: ");
-    Serial.println(nodeName);
+    // Serial.println("Configuration loaded from config.conf:");
+    // Serial.print("SSID: ");
+    // Serial.println(ssid);
+    // Serial.print("Password: ");
+    // Serial.println(password);
+    // Serial.print("MQTT Server: ");
+    // Serial.println(mqtt_server);
+    // Serial.print("Contact Number: ");
+    // Serial.println(contactNumber);
+    // Serial.print("Node Name: ");
+    // Serial.println(nodeName);
 
     controlsubs = "/relaycontrols/" + nodeName;
   } else {
-    Serial.println("Error: Failed to load configuration");
+    // Serial.println("Error: Failed to load configuration");
     lcd.clear();
-    lcd.setCursor(0,0);
+    lcd.setCursor(0, 0);
     lcd.print("ERROR:");
-    lcd.setCursor(0,1);
+    lcd.setCursor(0, 1);
     lcd.print("LOAD CONFIG FAIL");
     delay(10000);
   }
 
-  // Wi-Fi  
+  // Wi-Fi
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
   StaticJsonDocument<256> doc;
 
   // For each PZEM, initialize it
-    for(int i = 0; i < NUM_PZEMS; i++)
-    {
-       pzems[i] = PZEM004Tv30(pzemSWSerial, 0x11 + i);
-    }
+  for (int i = 0; i < NUM_PZEMS; i++) {
+    pzems[i] = PZEM004Tv30(pzemSWSerial, 0x11 + i);
+  }
 
   // SET Relays
   pcf8574.pinMode(P0, OUTPUT);
@@ -328,14 +335,14 @@ void setup() {
   pcf8574.pinMode(P2, OUTPUT);
   pcf8574.begin();
   //Send SMS
-    DateTime now = rtc.now();
-    String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
-    String message = nodeName + " BOOTUP NOTIFICATION" + " at " + datetime;
-    Serial.println("GSM MESSAGE: " + message);
-    sendMessage(message);
+  DateTime now = rtc.now();
+  String datetime = getDate(now);
+  String message = nodeName + " BOOTUP NOTIFICATION" + " at " + datetime;
+  // Serial.println("GSM MESSAGE: " + message);
+  sendMessage(message);
 }
 
-void loadValues(){
+void loadValues() {
   voltage = pzems[0].voltage();
   ampere1 = pzems[0].current();
   ampere2 = pzems[1].current();
@@ -352,124 +359,112 @@ void loadValues(){
 }
 
 String prepareJSONpayload(float voltage, float ampere1, float ampere2, float ampere3, float phaseAngle1, float phaseAngle2, float phaseAngle3, float power1, float power2, float power3, float energy1, float energy2, float energy3, bool relay1, bool relay2, bool relay3, String status) {
-    StaticJsonDocument<384> doc; //https://arduinojson.org/v6/assistant/
-    doc["node"] = nodeName;
-    doc["v"] = round(voltage * 100.0) / 100.0;
-    doc["a1"] = round(ampere1 * 100.0) / 100.0;
-    doc["a2"] = round(ampere2 * 100.0) / 100.0;
-    doc["a3"] = round(ampere3 * 100.0) / 100.0;
-    doc["pf1"] = round(phaseAngle1 * 100.0) / 100.0;
-    doc["pf2"] = round(phaseAngle2 * 100.0) / 100.0;
-    doc["pf3"] = round(phaseAngle3 * 100.0) / 100.0;
-    doc["w1"] = round(power1 * 100.0) / 100.0;
-    doc["w2"] = round(power2 * 100.0) / 100.0;
-    doc["w3"] = round(power3 * 100.0) / 100.0;
-    doc["e1"] = round(energy1 * 100.0) / 100.0;
-    doc["e2"] = round(energy2 * 100.0) / 100.0;
-    doc["e3"] = round(energy3 * 100.0) / 100.0;
-    doc["r1"] = relay1;
-    doc["r2"] = relay2;
-    doc["r3"] = relay3;
-    // Serial.println(voltage);
+  StaticJsonDocument<384> doc;  //https://arduinojson.org/v6/assistant/
+  doc["node"] = nodeName;
+  doc["v"] = round(voltage * 100.0) / 100.0;
+  doc["a1"] = round(ampere1 * 100.0) / 100.0;
+  doc["a2"] = round(ampere2 * 100.0) / 100.0;
+  doc["a3"] = round(ampere3 * 100.0) / 100.0;
+  doc["pf1"] = round(phaseAngle1 * 100.0) / 100.0;
+  doc["pf2"] = round(phaseAngle2 * 100.0) / 100.0;
+  doc["pf3"] = round(phaseAngle3 * 100.0) / 100.0;
+  doc["w1"] = round(power1 * 100.0) / 100.0;
+  doc["w2"] = round(power2 * 100.0) / 100.0;
+  doc["w3"] = round(power3 * 100.0) / 100.0;
+  doc["e1"] = round(energy1 * 100.0) / 100.0;
+  doc["e2"] = round(energy2 * 100.0) / 100.0;
+  doc["e3"] = round(energy3 * 100.0) / 100.0;
+  doc["r1"] = relay1;
+  doc["r2"] = relay2;
+  doc["r3"] = relay3;
+  // Serial.println(voltage);
 
-    if(R1 && !isnan(voltage)){
-        ampere1sort = ampere1;
-    }
-    if(R2 && !isnan(voltage)){
-        ampere2sort = ampere2;
-    }
-    if(R3 && !isnan(voltage)){
-        ampere3sort = ampere3;
-    }
-    // add if R1, r2 r3 is on read amp1 
-    float amperes[] = {ampere1sort, ampere2sort, ampere3sort};
-    int order[] = {0, 1, 2};
-    for (int i = 0; i < 3; ++i) {
-          for (int j = i + 1; j < 3; ++j) {
-            if (amperes[i] > amperes[j]) {
-                std::swap(amperes[i], amperes[j]);
-                std::swap(order[i], order[j]);
-            }
-          }
-        }
-        // for (int i = 0; i < 3; ++i) {
-        //   Serial.print(order[i]);
-        //   Serial.print(" - ");
-        //   Serial.println(amperes[i]);
-        // }
-
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("STATUS: ");
-    if(isnan(voltage)){
-      R1 = false;
-      R2 = false;
-      R3 = false;
-      pcf8574.digitalWrite(P0, HIGH);
-      pcf8574.digitalWrite(P1, HIGH);
-      pcf8574.digitalWrite(P2, HIGH);
-      status = "blackout";
-      lcd.setCursor(0,0);
-      lcd.print("BLACKOUT");
-      lcd.setCursor(0,1);
-      lcd.print(nodeName);
-      doc["status"] = "blackout";
-    } else if (voltage < 200){ // Brownout defined when voltage is less than 200V
-      R1 = false;
-      R2 = false;
-      R3 = false;
-      pcf8574.digitalWrite(P0, HIGH);
-      pcf8574.digitalWrite(P1, HIGH);
-      pcf8574.digitalWrite(P2, HIGH);
-      status = "brownout";
-      lcd.clear();
-      lcd.setCursor(0,0);
-      lcd.print("BLACKOUT");
-      lcd.setCursor(0,1);
-      lcd.print(nodeName);
-      doc["status"] = "brownout";
-    } else {
-      status = "normal";
-      lcd.clear();
-      lcd.setCursor(0,0);
-      lcd.print("Normal");
-      lcd.setCursor(0,1);
-      lcd.print(nodeName);
-      doc["status"] = "normal";
-    }
-    if(status != prevStatus){
-      DateTime now = rtc.now();
-      String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
-      String message = "";
-      if (status == "normal"){
-        message = nodeName + " status changed to " + status + " at " + datetime + ". Slow Restoration is in progress.";
-        sendMessage(message);
-        // Serial.println("GSM MESSAGE: " + message);
-
-        for (int i = 0; i < 3; i++) {
-          if (order[i] == 0) {
-            R1 = true;
-            pcf8574.digitalWrite(P0, LOW);
-          } else if (order[i] == 1) {
-            R2 = true;
-            pcf8574.digitalWrite(P1, LOW);
-          } else if (order[i] == 2) {
-            R3 = true;
-            pcf8574.digitalWrite(P2, LOW);
-          }
-          delay(3000);
-        }
-        
-      } else {
-        message = nodeName + " status changed to " + status + " at " + datetime + ".";
-        sendMessage(message);
-        Serial.println("GSM MESSAGE: " + message);
+  if (R1 && !isnan(voltage)) {
+    ampere1sort = ampere1;
+  }
+  if (R2 && !isnan(voltage)) {
+    ampere2sort = ampere2;
+  }
+  if (R3 && !isnan(voltage)) {
+    ampere3sort = ampere3;
+  }
+  // add if R1, r2 r3 is on read amp1
+  float amperes[] = { ampere1sort, ampere2sort, ampere3sort };
+  int order[] = { 0, 1, 2 };
+  for (int i = 0; i < 3; ++i) {
+    for (int j = i + 1; j < 3; ++j) {
+      if (amperes[i] > amperes[j]) {
+        std::swap(amperes[i], amperes[j]);
+        std::swap(order[i], order[j]);
       }
-      
-      prevStatus = status;
     }
-    String output;
-    serializeJson(doc, output);
+  }
+  // for (int i = 0; i < 3; ++i) {
+  //   Serial.print(order[i]);
+  //   Serial.print(" - ");
+  //   Serial.println(amperes[i]);
+  // }
+
+  if (isnan(voltage)) {
+    R1 = false;
+    R2 = false;
+    R3 = false;
+    pcf8574.digitalWrite(P0, HIGH);
+    pcf8574.digitalWrite(P1, HIGH);
+    pcf8574.digitalWrite(P2, HIGH);
+    status = "blackout";
+    doc["status"] = "blackout";
+  } else if (voltage < 200) {  // Brownout defined when voltage is less than 200V
+    R1 = false;
+    R2 = false;
+    R3 = false;
+    pcf8574.digitalWrite(P0, HIGH);
+    pcf8574.digitalWrite(P1, HIGH);
+    pcf8574.digitalWrite(P2, HIGH);
+    status = "brownout";
+    doc["status"] = "brownout";
+  } else {
+    status = "normal";
+    doc["status"] = "normal";
+  }
+  if (status != prevStatus) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print(status);
+    lcd.setCursor(0, 1);
+    lcd.print(nodeName);
+    DateTime now = rtc.now();
+    String datetime = getDate(now);
+    String message = "";
+    if (status == "normal") {
+      message = nodeName + " status changed to " + status + " at " + datetime + ". Slow Restoration is in progress.";
+      sendMessage(message);
+      // Serial.println("GSM MESSAGE: " + message);
+
+      for (int i = 0; i < 3; i++) {
+        if (order[i] == 0) {
+          R1 = true;
+          pcf8574.digitalWrite(P0, LOW);
+        } else if (order[i] == 1) {
+          R2 = true;
+          pcf8574.digitalWrite(P1, LOW);
+        } else if (order[i] == 2) {
+          R3 = true;
+          pcf8574.digitalWrite(P2, LOW);
+        }
+        delay(1500);
+      }
+
+    } else {
+      message = nodeName + " status changed to " + status + " at " + datetime + ".";
+      sendMessage(message);
+      // Serial.println("GSM MESSAGE: " + message);
+    }
+
+    prevStatus = status;
+  }
+  String output;
+  serializeJson(doc, output);
   return output;
 }
 
@@ -486,20 +481,20 @@ void loop() {
     myFile = SD.open("log.txt", FILE_WRITE);
     if (myFile) {
       DateTime now = rtc.now();
-      String datetime = String(now.year()) + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + " ";
+      String datetime = getDate(now);
       myFile.print(datetime);
       myFile.println(output);
-      Serial.println(output);
+      // Serial.println(output);
       myFile.close();
     } else {
       lcd.clear();
-      lcd.setCursor(0,0);
+      lcd.setCursor(0, 0);
       lcd.print("ERROR:");
-      lcd.setCursor(0,1);
+      lcd.setCursor(0, 1);
       lcd.print("LOG WRITE FAIL");
       // if the file didn't open, print an error:
-  }
-    String fullTopic = "powerdata/" + nodeName; // Concatenate the base topic with the node name
+    }
+    String fullTopic = "powerdata/" + nodeName;  // Concatenate the base topic with the node name
     client.publish(fullTopic.c_str(), output.c_str());
     client.publish("powerdata", output.c_str());
   }
