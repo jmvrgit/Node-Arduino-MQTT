@@ -194,8 +194,8 @@ void reconnect() {
   while (!client.connected()) {
     // Serial.print("Attempting MQTT connection...");
     // Create a random client ID
-    String clientId = "ESP8266Client-";
-    clientId += String(random(0xffff), HEX);
+    // String clientId = "ESP8266Client-";
+    // clientId += String(random(0xffff), HEX);
     // Attempt to connect
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -208,6 +208,11 @@ void reconnect() {
       // client.publish("powerdata", "hello world");
       // ... and resubscribe
       client.subscribe(controlsubs.c_str());
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print(status);
+      lcd.setCursor(0, 1);
+      lcd.print(nodeName);
     } else {
       // Serial.print("failed, rc=");
       // Serial.print(client.state());
