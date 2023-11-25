@@ -62,9 +62,9 @@ double energy3;
 bool R1 = false;
 bool R2 = false;
 bool R3 = false;
-String status = "";
+String status = "normal";
 String controlsubs = "";
-String prevStatus = "";
+String prevStatus = "normal";
 
 void sendMessage(String message) {
   GSMSerial.println("AT+CMGF=1");
