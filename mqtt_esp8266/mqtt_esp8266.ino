@@ -1,19 +1,30 @@
 #include <ESP8266WiFi.h>
+
 #include <PubSubClient.h>
+
 #include <ArduinoJson.h>
+
 #include <Wire.h>               // This library is already built in to the Arduino IDE
+
 #include <LiquidCrystal_I2C.h>  //This library you can add via Include Library > Manage Library >
+
 #include <SPI.h>                // MicroSD
+
 #include <SD.h>
+
 #include "RTClib.h"
-// PCF
+ // PCF
 #include "Arduino.h"
+
 #include "PCF8574.h"
+
 PCF8574 pcf8574(0x20, 2, 0);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 // PZEM
 #include <PZEM004Tv30.h>
+
 #include <SoftwareSerial.h>
+
 #define USE_SOFTWARE_SERIAL true
 #define PZEM_RX_PIN 5
 #define PZEM_TX_PIN 4
@@ -21,7 +32,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 #define MQTT_DELAY 3000
 PZEM004Tv30 pzems[NUM_PZEMS];
 SoftwareSerial pzemSWSerial(PZEM_RX_PIN, PZEM_TX_PIN);
-SoftwareSerial GSMSerial(1, 16);  //UNUSED RX to TX 16 (D0)
+SoftwareSerial GSMSerial(1, 16); //UNUSED RX to TX 16 (D0)
 // //https://www.theengineeringprojects.com/2018/10/introduction-to-nodemcu-v3.html
 
 File myFile;
@@ -31,12 +42,20 @@ unsigned long lastMsg = 0;
 
 // RTC
 RTC_DS1307 rtc;
-char daysOfTheWeek[7][12] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+char daysOfTheWeek[7][12] = {
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday"
+};
 
 // Update these with values suitable for your network.
-const char* ssid = "";
-const char* password = "";
-const char* mqtt_server = "";
+const char * ssid = "";
+const char * password = "";
+const char * mqtt_server = "";
 
 // GSM
 String contactNumber = "";
@@ -62,6 +81,9 @@ double energy3;
 bool R1 = false;
 bool R2 = false;
 bool R3 = false;
+bool storedR1 = false;
+bool storedR2 = false;
+bool storedR3 = false;
 String status = "normal";
 String controlsubs = "";
 String prevStatus = "normal";
@@ -77,18 +99,21 @@ void sendMessage(String message) {
   delay(500);
 }
 
-String getDate(DateTime now){
+String getDate(DateTime now) {
   String dateNow = String(now.year(), DEC) + "/" + String(now.month(), DEC) + "/" + String(now.day(), DEC) + " " + String(now.hour(), DEC) + ":" + String(now.minute(), DEC) + ":" + String(now.second()) + " ";
   return dateNow;
 }
 
-bool loadConfig(const char* filename, const char*& ssid, const char*& password, const char*& mqtt_server, String& contactNumber, String& nodeName) {
+bool loadConfig(const char * filename,
+  const char * & ssid,
+    const char * & password,
+      const char * & mqtt_server, String & contactNumber, String & nodeName) {
   File configFile = SD.open(filename);
   while (!configFile) {
     // Serial.println("Error: config.conf missing");
   }
 
-  StaticJsonDocument<384> doc;
+  StaticJsonDocument < 384 > doc;
   DeserializationError error = deserializeJson(doc, configFile);
   configFile.close();
 
@@ -97,11 +122,11 @@ bool loadConfig(const char* filename, const char*& ssid, const char*& password, 
     return false;
   }
 
-  ssid = strdup(doc["ssid"].as<String>().c_str());
-  password = strdup(doc["password"].as<String>().c_str());
-  mqtt_server = strdup(doc["mqtt_server"].as<String>().c_str());
-  contactNumber = doc["contactNumber"].as<String>();
-  nodeName = doc["nodeName"].as<String>();
+  ssid = strdup(doc["ssid"].as < String > ().c_str());
+  password = strdup(doc["password"].as < String > ().c_str());
+  mqtt_server = strdup(doc["mqtt_server"].as < String > ().c_str());
+  contactNumber = doc["contactNumber"].as < String > ();
+  nodeName = doc["nodeName"].as < String > ();
   return true;
 }
 
@@ -140,7 +165,7 @@ void setup_wifi() {
   delay(250);
 }
 
-void callback(char* topic, byte* payload, unsigned int length) {
+void callback(char * topic, byte * payload, unsigned int length) {
   // Serial.print("Message arrived [");
   // Serial.print(topic);
   // Serial.print("] ");
@@ -150,7 +175,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   // Serial.println();
 
   // Parse the incoming JSON message
-  StaticJsonDocument<96> doc;
+  StaticJsonDocument < 96 > doc;
   DeserializationError error = deserializeJson(doc, payload, length);
 
   if (error) {
@@ -241,18 +266,18 @@ void initializeSD() {
 }
 
 void setup() {
-#ifndef ESP8266
+  #ifndef ESP8266
   while (!Serial)
-    ;  // wait for serial port to connect. Needed for native USB -- RTC
-#endif
+  ; // wait for serial port to connect. Needed for native USB -- RTC
+  #endif
 
-  pinMode(BUILTIN_LED, OUTPUT);  // Initialize the BUILTIN_LED pin as an output
+  pinMode(BUILTIN_LED, OUTPUT); // Initialize the BUILTIN_LED pin as an output
   Serial.begin(115200);
-  GSMSerial.begin(9600);  // Set GSM Baud at 9600
-    // LCD
+  GSMSerial.begin(9600); // Set GSM Baud at 9600
+  // LCD
   Wire.begin(2, 0);
-  lcd.init();       // initializing the LCD
-  lcd.backlight();  // Enable or Turn On the backlight
+  lcd.init(); // initializing the LCD
+  lcd.backlight(); // Enable or Turn On the backlight
 
   // RTC
   if (!rtc.begin()) {
@@ -327,7 +352,7 @@ void setup() {
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
-  StaticJsonDocument<256> doc;
+  StaticJsonDocument < 256 > doc;
 
   // For each PZEM, initialize it
   for (int i = 0; i < NUM_PZEMS; i++) {
@@ -364,7 +389,7 @@ void loadValues() {
 }
 
 String prepareJSONpayload(float voltage, float ampere1, float ampere2, float ampere3, float phaseAngle1, float phaseAngle2, float phaseAngle3, float power1, float power2, float power3, float energy1, float energy2, float energy3, bool relay1, bool relay2, bool relay3, String status) {
-  StaticJsonDocument<384> doc;  //https://arduinojson.org/v6/assistant/
+  StaticJsonDocument < 384 > doc; //https://arduinojson.org/v6/assistant/
   doc["node"] = nodeName;
   doc["v"] = round(voltage * 100.0) / 100.0;
   doc["a1"] = round(ampere1 * 100.0) / 100.0;
@@ -394,8 +419,16 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
     ampere3sort = ampere3;
   }
   // add if R1, r2 r3 is on read amp1
-  float amperes[] = { ampere1sort, ampere2sort, ampere3sort };
-  int order[] = { 0, 1, 2 };
+  float amperes[] = {
+    ampere1sort,
+    ampere2sort,
+    ampere3sort
+  };
+  int order[] = {
+    0,
+    1,
+    2
+  };
   for (int i = 0; i < 3; ++i) {
     for (int j = i + 1; j < 3; ++j) {
       if (amperes[i] > amperes[j]) {
@@ -411,18 +444,18 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
   // }
 
   if (isnan(voltage)) {
-    R1 = false;
-    R2 = false;
-    R3 = false;
+    storedR1 = R1;
+    storedR2 = R2;
+    storedR3 = R3;
     pcf8574.digitalWrite(P0, HIGH);
     pcf8574.digitalWrite(P1, HIGH);
     pcf8574.digitalWrite(P2, HIGH);
     status = "blackout";
     doc["status"] = "blackout";
-  } else if (voltage < 200) {  // Brownout defined when voltage is less than 200V
-    R1 = false;
-    R2 = false;
-    R3 = false;
+  } else if (voltage < 200) { // Brownout defined when voltage is less than 200V
+    storedR1 = R1;
+    storedR2 = R2;
+    storedR3 = R3;
     pcf8574.digitalWrite(P0, HIGH);
     pcf8574.digitalWrite(P1, HIGH);
     pcf8574.digitalWrite(P2, HIGH);
@@ -448,14 +481,20 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
 
       for (int i = 0; i < 3; i++) {
         if (order[i] == 0) {
-          R1 = true;
-          pcf8574.digitalWrite(P0, LOW);
+          if (storedR1) {
+            R1 = true;
+            pcf8574.digitalWrite(P0, LOW);
+          }
         } else if (order[i] == 1) {
-          R2 = true;
-          pcf8574.digitalWrite(P1, LOW);
+          if (storedR2) {
+            R2 = true;
+            pcf8574.digitalWrite(P1, LOW);
+          }
         } else if (order[i] == 2) {
-          R3 = true;
-          pcf8574.digitalWrite(P2, LOW);
+          if (storedR3) {
+            R3 = true;
+            pcf8574.digitalWrite(P2, LOW);
+          }
         }
         delay(1500);
       }
@@ -499,7 +538,7 @@ void loop() {
       lcd.print("LOG WRITE FAIL");
       // if the file didn't open, print an error:
     }
-    String fullTopic = "powerdata/" + nodeName;  // Concatenate the base topic with the node name
+    String fullTopic = "powerdata/" + nodeName; // Concatenate the base topic with the node name
     client.publish(fullTopic.c_str(), output.c_str());
     client.publish("powerdata", output.c_str());
   }
