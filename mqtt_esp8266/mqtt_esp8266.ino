@@ -367,7 +367,7 @@ void setup() {
   //Send SMS
   DateTime now = rtc.now();
   String datetime = getDate(now);
-  String message = nodeName + " BOOTUP NOTIFICATION" + " at " + datetime;
+  String message = nodeName + " restarted. Blackout detected at " + datetime;
   // Serial.println("GSM MESSAGE: " + message);
   sendMessage(message);
 }
@@ -475,7 +475,7 @@ String prepareJSONpayload(float voltage, float ampere1, float ampere2, float amp
     String datetime = getDate(now);
     String message = "";
     if (status == "normal") {
-      message = nodeName + " status changed to " + status + " at " + datetime + ". Slow Restoration is in progress.";
+      message = nodeName + " status changed to " + status + " at " + datetime + ".";
       sendMessage(message);
       // Serial.println("GSM MESSAGE: " + message);
 
