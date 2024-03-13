@@ -77,9 +77,10 @@ void sendMessage(String message) {
   delay(500);
 }
 
-String getDate(DateTime now){
-  String dateNow = String(now.year(), DEC) + "/" + String(now.month(), DEC) + "/" + String(now.day(), DEC) + " " + String(now.hour(), DEC) + ":" + String(now.minute(), DEC) + ":" + String(now.second()) + " ";
-  return dateNow;
+String getDate(DateTime now) {
+  char dateNow[20]; // Ensure this is large enough to hold the resulting string
+  sprintf(dateNow, "%04d/%02d/%02d %02d:%02d:%02d", now.year(), now.month(), now.day(), now.hour(), now.minute(), now.second());
+  return String(dateNow);
 }
 
 bool loadConfig(const char* filename, const char*& ssid, const char*& password, const char*& mqtt_server, String& contactNumber, String& nodeName) {
@@ -265,7 +266,7 @@ void setup() {
     while (1) delay(10);
   }
 
-  if (!rtc.isrunning()) {
+  if (!rtc.lostPower()) {
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("ERROR:");
@@ -273,11 +274,12 @@ void setup() {
     lcd.print("RTC ERROR 001");
     // When time needs to be set on a new device, or after a power loss, the
     // following line sets the RTC to the date & time this sketch was compiled
-    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     // This line sets the RTC with an explicit date & time, for example to set
     // January 21, 2014 at 3am you would call:
     // rtc.adjust(DateTime(2023, 04, 23, 0, 49, 0));
   }
+
   // SD Card
   initializeSD();
   myFile = SD.open("log.txt", FILE_WRITE);
