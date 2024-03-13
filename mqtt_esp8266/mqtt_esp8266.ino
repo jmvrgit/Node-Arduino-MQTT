@@ -21,7 +21,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 #define MQTT_DELAY 3000
 PZEM004Tv30 pzems[NUM_PZEMS];
 SoftwareSerial pzemSWSerial(PZEM_RX_PIN, PZEM_TX_PIN);
-SoftwareSerial GSMSerial(1, 16);  //UNUSED RX to TX 16 (D0)
+// SoftwareSerial GSMSerial(1, 16);  //UNUSED RX to TX 16 (D0)
 // //https://www.theengineeringprojects.com/2018/10/introduction-to-nodemcu-v3.html
 
 File myFile;
@@ -30,7 +30,7 @@ PubSubClient client(espClient);
 unsigned long lastMsg = 0;
 
 // RTC
-RTC_DS1307 rtc;
+RTC_DS3231 rtc;
 char daysOfTheWeek[7][12] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 
 // Update these with values suitable for your network.
@@ -67,13 +67,13 @@ String controlsubs = "";
 String prevStatus = "normal";
 
 void sendMessage(String message) {
-  GSMSerial.println("AT+CMGF=1");
+  Serial.println("AT+CMGF=1");
   delay(500);
-  GSMSerial.println("AT+CMGS=\"" + contactNumber + "\"");
+  Serial.println("AT+CMGS=\"" + contactNumber + "\"");
   delay(500);
-  GSMSerial.print(message);
+  Serial.print(message);
   delay(500);
-  GSMSerial.write(26);
+  Serial.write(26);
   delay(500);
 }
 
@@ -93,7 +93,7 @@ bool loadConfig(const char* filename, const char*& ssid, const char*& password, 
   configFile.close();
 
   if (error) {
-    Serial.println("Error: Failed to read config.conf");
+    // Serial.println("Error: Failed to read config.conf");
     return false;
   }
 
@@ -247,8 +247,8 @@ void setup() {
 #endif
 
   pinMode(BUILTIN_LED, OUTPUT);  // Initialize the BUILTIN_LED pin as an output
-  Serial.begin(115200);
-  GSMSerial.begin(9600);  // Set GSM Baud at 9600
+  // Serial.begin(115200);
+  Serial.begin(9600);  // Set GSM Baud at 9600
     // LCD
   Wire.begin(2, 0);
   lcd.init();       // initializing the LCD
@@ -261,7 +261,7 @@ void setup() {
     lcd.print("ERROR:");
     lcd.setCursor(0, 1);
     lcd.print("RTC NOT FOUND");
-    Serial.flush();
+    // Serial.flush();
     while (1) delay(10);
   }
 
@@ -282,7 +282,7 @@ void setup() {
   initializeSD();
   myFile = SD.open("log.txt", FILE_WRITE);
   if (myFile) {
-    Serial.print("Writing to log.txt...");
+    // Serial.print("Writing to log.txt...");
     DateTime now = rtc.now();
     String datetime = getDate(now);
     String message = nodeName + " BOOTUP INITIALIZED" + " at " + datetime;
